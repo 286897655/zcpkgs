@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+3rdparty/spdlog-1.15.0
+3rdparty/libuv-v1.49.2
