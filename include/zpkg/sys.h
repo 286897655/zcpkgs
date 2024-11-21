@@ -36,15 +36,65 @@
 #include <string>
 
 namespace zpkg{
+
+/**
+* get system page size
+*/
+size_t sys_getpagesize();
+
+// wrapper for application set for systems
+std::string sys_app_dir();
+std::string sys_app_path();
+std::string sys_app_name();
+
+// wrapper for popen/pclose for systems
+FILE* sys_popen(const std::string& command, const std::string& mode);
+int sys_pclose(FILE* stream);
+
+/**
+ * @brief run as daemon service for linux fork 
+ * 
+ */
+void sys_run_daemon();
+
+/**
+ * @brief set current thread name
+ * 
+ */
+void sys_set_curtr_name(const std::string& name);
+
+/**
+ * @brief Set the Limit(core and fd limit) And Sig Crash
+ * 
+ */
+void sys_set_limit_and_crash_sig();
+
+void sys_write_syslog(const std::string& log);
+
+/**
+ * @brief execute a command
+ * 
+ * @param command 
+ * @return std::string 
+ */
+std::string sys_exec_cmd(const std::string& command);
+
 namespace sys{
 
-std::string app_dir();
-std::string app_path();
-std::string app_name();
+/// @brief class for single process mutex
+class process_mutex{
+public:
+    process_mutex();
+    ~process_mutex();
+public:
+    void lock();
+    void unlock();
 
-};//!namespace sys
+private:
+    int lock_fd;
+};
 
-
+};//!namesapce sys
 
 };//!namespace zpkg
 

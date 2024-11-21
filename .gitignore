@@ -1,3 +1,10 @@
+3rdparty/spdlog-1.15.0
+3rdparty/libuv-v1.49.2
+3rdparty/asio-1.28.0
+
+bin/
+lib/
+
 # Prerequisites
 *.d
 
@@ -30,6 +37,3 @@
 *.exe
 *.out
 *.app
-
-3rdparty/spdlog-1.15.0
-3rdparty/libuv-v1.49.2

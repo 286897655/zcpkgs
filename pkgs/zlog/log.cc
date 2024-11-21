@@ -71,7 +71,7 @@ std::shared_ptr<logger> logger::create_rotateFileLogger(const std::string& logfi
     spdlog::drop_all();
 
     char buf[1024]={0};
-    std::string path = zpkg::sys::app_dir();
+    std::string path = zpkg::sys_app_dir();
     sprintf(buf,"%s%s/%s",path.c_str(),kLogDir,logfilename.c_str());
 
     default_logger->spdlogger = spdlog::create<spdlog::sinks::rotating_file_sink_mt>(kRotating,buf,kRotatingSize,kMaxRotating);
