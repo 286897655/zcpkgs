@@ -8,7 +8,7 @@ int main(int argc,char** argv){
     for(int i = 0;i<320;i++){
         origin[i] = rand() & 0xFF;
     }
-
+    
     // bench cross byte c
     auto start = std::chrono::high_resolution_clock::now();
     for(int i = 0; i< 100000;i++){
