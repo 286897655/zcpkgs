@@ -32,13 +32,17 @@
 
 #include "zav/codec/h26x.h"
 #include <string.h>
+
+#ifdef __AVX2__
 #include <immintrin.h>
+#endif
 namespace zav{
 
 namespace h26x{
 
 static const uint8_t h26x_start_prefix[3] = {0x00,0x00,0x01};
 
+#ifdef __AVX2__
 /**
  *  @brief  Helper structure to simplify work with 256-bit registers.
  */
@@ -366,6 +370,7 @@ uint8_t* sz_find_avx2(uint8_t* h, size_t h_length, uint8_t* n, size_t n_length) 
 //     return sz_find_serial(h, h_length, n, n_length);
 // }
 
+#endif
 // two-way
 uint8_t* annexb_find_start_memmem(const uint8_t* bytes,size_t sizeBytes)
 {
@@ -453,13 +458,21 @@ const uint8_t* annexb_find_start_sbm(const uint8_t* bytes,size_t sizeBytes)
     return found;
 }
 
+#ifdef __AVX2__
 uint8_t* annexb_find_start_3byte(const uint8_t* bytes,size_t sizeBytes)
 {
     return _sz_find_3byte_serial((uint8_t*)bytes,sizeBytes,(uint8_t*)h26x_start_prefix);
 }
 uint8_t* annexb_find_start_avx2(const uint8_t* bytes,size_t sizeBytes)
 {
+    
     return sz_find_avx2((uint8_t*)bytes,sizeBytes,(uint8_t*)h26x_start_prefix,3);
+}
+#endif
+
+uint8_t* annexb_find_start_neon(const uint8_t* bytes,size_t sizeBytes)
+{
+    return nullptr;
 }
 
 const uint8_t* annexb_find_next_nalu_start(const uint8_t* bytes,size_t sizeBytes,NALU_PREFIX_SIZE* prefix){

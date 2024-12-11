@@ -39,7 +39,7 @@
 #include <algorithm>
 #include <sstream>
 #include <memory>
-
+#include <vector>
 
 namespace zpkg{
 
