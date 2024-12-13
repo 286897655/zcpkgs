@@ -36,6 +36,8 @@
 #include <string>
 #include <functional>
 #include <thread>
+#include <zpkg/utility.h>
+#include <zio/timer.h>
 
 #if defined _WIN32
 // Windows uses a pointer-sized unsigned integer to store the socket fd.
@@ -65,6 +67,7 @@ public:
     void run();
     bool is_this_thread_loop() const;
     io_poller_t* poller() const;
+    uint32_t load();
 
 private:
     explicit io_loop_t(const std::string& loop_name);
@@ -73,27 +76,43 @@ private:
     // run in loop thread
     void init();
 
+private:
+
     std::string loop_name_;
     std::thread* loop_thread_;
     io_poller_t* loop_poller_;
 
     //std::multimap<uint64_t, timer_info_t> timers_t;
+    Z_DISABLE_COPY_MOVE(io_loop_t)
 };
 
 class io_handler_t{
-
+public:
+    virtual void in_event() = 0;
+    virtual void out_event() = 0;
+    virtual void timer_event() = 0;
+    virtual void on_error() = 0;
+    virtual zio_fd_t fd() = 0;
 };
 
 class epoll_poller;
 class io_poller_t{
 public:
     io_poller_t();
+    ~io_poller_t();
 
+    void poll();
+    void add_fd(zio_fd_t fd,io_handler_t* handler);
+    void rm_fd(zio_fd_t fd);
+    void set_in_event(zio_fd_t fd);
+    void reset_in_event(zio_fd_t fd);
+    void set_out_event(zio_fd_t fd);
+    void reset_out_event(zio_fd_t fd);
+    uint32_t load();
 
 private:
     epoll_poller* epoll_poller_;
-
-
+    Z_DISABLE_COPY_MOVE(io_poller_t)
 };
 
 }//!namespace zio

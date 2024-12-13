@@ -40,7 +40,7 @@ static io_loop_t* default_loop_ptr_ = nullptr;
 
 thread_local io_loop_t* thread_loop = nullptr;
 
-// 在 抓线程一定运行过一次
+// 在 主线程一定运行过一次
 io_loop_t* io_loop_t::default_loop()
 {
     if(default_loop_ptr_)  return default_loop_ptr_;
@@ -95,7 +95,7 @@ void io_loop_t::init()
     pthread_setname_np(pthread_self(),loop_name_.c_str());
 
     // create poller
-    loop_poller_ = new epoll_poller();
+    loop_poller_ = new io_poller_t();
     zlog("zio:created io_loop {}",loop_name_);
     // bind thread loop
     thread_loop = this;
@@ -103,16 +103,79 @@ void io_loop_t::init()
 
 void io_loop_t::async(std::function<void()>&& callback)
 {
+    if(is_this_thread_loop()){
+        callback();
+        return;
+    }
+    // not in this thread insert to tasklist
 
+}
+
+bool io_loop_t::is_this_thread_loop() const
+{
+    return thread_loop == this;
 }
 
 void io_loop_t::run()
 {
     while(1){
-        // test
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        loop_poller_->poll();
     }
 }
 
+
+io_poller_t::io_poller_t():epoll_poller_(nullptr)
+{   
+    epoll_handle handle = epoll_poller::create_epoll_handle();
+    if(handle == epoll_invalie_handle){
+        throw std::runtime_error("invalid epoll");
+    }
+    epoll_poller_ = new epoll_poller(handle);
+}
+
+io_poller_t::~io_poller_t()
+{
+
+}
+
+void io_poller_t::poll()
+{
+    epoll_poller_->poll();
+}
+
+void io_poller_t::add_fd(zio_fd_t fd,io_handler_t* handler)
+{
+    return epoll_poller_->add_fd(fd,handler);
+}
+
+void io_poller_t::rm_fd(zio_fd_t fd)
+{
+    return epoll_poller_->rm_fd(fd);
+}
+
+void io_poller_t::set_in_event(zio_fd_t fd)
+{
+    return epoll_poller_->set_in_event(fd);
+}
+
+void io_poller_t::reset_in_event(zio_fd_t fd)
+{
+    return epoll_poller_->reset_in_event(fd);
+}
+
+void io_poller_t::set_out_event(zio_fd_t fd)
+{
+    return epoll_poller_->set_out_event(fd);
+}
+
+void io_poller_t::reset_out_event(zio_fd_t fd)
+{
+    return epoll_poller_->reset_out_event(fd);
+}
+
+uint32_t io_poller_t::load()
+{
+    return epoll_poller_->load();
+}
 
 }
