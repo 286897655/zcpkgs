@@ -53,12 +53,12 @@ io_loop_t* io_loop_t::default_loop()
 
 io_loop_t* io_loop_t::next_loop()
 {
-
+    return nullptr;
 }
 
 io_loop_t* io_loop_t::min_load_loop()
 {
-
+    return nullptr;
 }
 
 size_t io_loop_t::create_loop_pool(const std::string& name,size_t count){
@@ -77,6 +77,7 @@ size_t io_loop_t::create_loop_pool(const std::string& name,size_t count){
             loop->run();
         });
     }
+    return count;
 }
 
 io_loop_t::io_loop_t(const std::string& loop_name):loop_name_(loop_name),loop_thread_(nullptr)
@@ -124,13 +125,9 @@ void io_loop_t::run()
 }
 
 
-io_poller_t::io_poller_t():epoll_poller_(nullptr)
+io_poller_t::io_poller_t():epoll_poller_(epoll_poller::create())
 {   
-    epoll_handle handle = epoll_poller::create_epoll_handle();
-    if(handle == epoll_invalie_handle){
-        throw std::runtime_error("invalid epoll");
-    }
-    epoll_poller_ = new epoll_poller(handle);
+    
 }
 
 io_poller_t::~io_poller_t()

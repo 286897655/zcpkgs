@@ -43,13 +43,15 @@
 
 namespace zpkg{
 
-namespace strings{
-
+namespace kstrings{
 static constexpr const char kEmpty[] = "";
 static constexpr const char kCR[] = "\r";//0x0D
 static constexpr const char kLF[] = "\n";//0x0A
 static constexpr const char kCRLF[] = "\r\n";//0x0D 0x0A
 static constexpr const char kCRLF_CRLF[] = "\r\n\r\n";//0x0D 0x0A 0x0D 0x0A
+};
+
+namespace strings{
 
 /// @brief left trim string
 /// @param s 
@@ -220,7 +222,6 @@ std::string fmt_string(const std::string& fmt, Args ... args) {
 /// @param max_size 
 /// @return 
 std::string fmt_hexdump(const uint8_t* data,size_t size,size_t max_size = 4096);
-
 }//!namespace zpkg
 
 #endif //!ZPKG_STRINGS_H_

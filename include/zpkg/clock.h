@@ -23,8 +23,10 @@ public:
     enum{
         USEC_PER_MSEC = 1000LL,// 一毫秒1000微妙
         USEC_PER_SEC  = 1000000LL,// 一秒1000000微妙
+        NSEC_PER_SEC  = 1000000000LL,// 一秒1000000000纳秒
         NSEC_PER_USEC = 1000LL // 一微秒1000纳秒
     };
+    static z_time_t now_ns();
     static z_time_t now_us();
     static z_time_t now_ms();
 };

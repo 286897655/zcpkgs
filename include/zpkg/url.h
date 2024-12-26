@@ -30,57 +30,37 @@
  * @brief 
  */
 
-#ifndef ZIO_EPOLL_POLLER_H_
-#define ZIO_EPOLL_POLLER_H_
+#ifndef ZPKG_URL_H_
+#define ZPKG_URL_H_
 
-#include "zio/io_poller.h"
-#include <atomic>
-#include <unordered_map>
-#include <unordered_set>
+#include <zpkg/error.h>
 
-namespace zio{
+namespace zpkg{
 
-using epoll_handle = int;
-
-enum{
-    // invalid epoll handle defind
-    epoll_invalie_handle = -1,
-    // max io epoll events in one loop
-    epoll_max_io_events = 1024
+struct url_ctx{
+    std::string schema;
+    std::string host;
+    int port;
+    std::string path;
+    std::string base;
+    std::string param;
 };
 
-class epoll_poller{
-public:
-    static epoll_poller* create();
-private:
-    explicit epoll_poller(epoll_handle handle);
-public:
-    ~epoll_poller();
+/**
+ * split url to separate part
+ * such as http://127.0.0.1:8080/xxxx/xxx.m3u8
+ * rtsp://127.0.0.1:254/xxx/xxx
+ * ---> protocol http
+ *      hostport 127.0.0.1:8080
+ *      path /xxxx/
+ *      base xxx.m3u8
+ * ---> protocol rtsp
+ *      hostport 127.0.0.1:254
+ *      path /xxx/
+ *      base xxx 
+*/
+zerror_code_t url_parser(const std::string& url,url_ctx* url_ctx);
 
-    void add_fd(zio_fd_t fd,io_handler_t* handler);
-    void rm_fd(zio_fd_t fd);
-    void set_in_event(zio_fd_t fd);
-    void reset_in_event(zio_fd_t fd);
-    void set_out_event(zio_fd_t fd);
-    void reset_out_event(zio_fd_t fd);
-    uint32_t load();
+};//!namespace zpkg
 
-    void poll(int timeout = -1);
-
-private:
-
-private:
-    epoll_handle epoll_fd_;
-    std::atomic<uint32_t> load_;
-    std::unordered_map<zio_fd_t,io_handler_t*> fd_map_;
-    Z_DISABLE_COPY_MOVE(epoll_poller)
-};
-
-
-
-
-};
-
-
-
-#endif //!ZIO_EPOLL_POLLER_H_
+#endif //!ZPKG_URL_H_

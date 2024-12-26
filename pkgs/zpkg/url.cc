@@ -30,57 +30,27 @@
  * @brief 
  */
 
-#ifndef ZIO_EPOLL_POLLER_H_
-#define ZIO_EPOLL_POLLER_H_
+#include "zpkg/url.h"
+#include "zpkg/utility.h"
 
-#include "zio/io_poller.h"
-#include <atomic>
-#include <unordered_map>
-#include <unordered_set>
+namespace zpkg{
 
-namespace zio{
+zerror_code_t url_parser(const std::string& url,url_ctx* url_ctx)
+{
+    Z_ASSERT(url_ctx);
 
-using epoll_handle = int;
-
-enum{
-    // invalid epoll handle defind
-    epoll_invalie_handle = -1,
-    // max io epoll events in one loop
-    epoll_max_io_events = 1024
-};
-
-class epoll_poller{
-public:
-    static epoll_poller* create();
-private:
-    explicit epoll_poller(epoll_handle handle);
-public:
-    ~epoll_poller();
-
-    void add_fd(zio_fd_t fd,io_handler_t* handler);
-    void rm_fd(zio_fd_t fd);
-    void set_in_event(zio_fd_t fd);
-    void reset_in_event(zio_fd_t fd);
-    void set_out_event(zio_fd_t fd);
-    void reset_out_event(zio_fd_t fd);
-    uint32_t load();
-
-    void poll(int timeout = -1);
-
-private:
-
-private:
-    epoll_handle epoll_fd_;
-    std::atomic<uint32_t> load_;
-    std::unordered_map<zio_fd_t,io_handler_t*> fd_map_;
-    Z_DISABLE_COPY_MOVE(epoll_poller)
-};
+    std::string substr = url;
+    size_t pos = substr.find("://");
+    if(pos == std::string::npos){
+        // not valid xxxx:// start
+        return kInviliadArgument;
+    }
+    url_ctx->schema = substr.substr(0,pos);
+    substr = substr.substr(pos + 3);
+    
+    throw std::runtime_error("use after implementation");
+    return kOK;
+}
 
 
-
-
-};
-
-
-
-#endif //!ZIO_EPOLL_POLLER_H_
+};//!namespace zpkg

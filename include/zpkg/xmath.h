@@ -37,6 +37,21 @@
 #include <type_traits>
 
 namespace zpkg{
+
+// fraction use for as num/den
+template<typename T>
+struct fraction{
+    T num;// numerator
+    T den;// denominator
+};
+
+template<typename T>
+fraction<T> make_frac(T num,T den){
+    return fraction<T>{num,den};
+}
+
+using int32_frac_t = fraction<int32_t>;
+
 #if __cplusplus >= 201402L // C++14 and beyond
     using std::enable_if_t;
 #else

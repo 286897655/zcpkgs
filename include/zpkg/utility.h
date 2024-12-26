@@ -34,12 +34,43 @@
 #define ZPKG_UTILITY_H_
 
 #include <zpkg/portable.h>
-#include <memory>
+#include <zpkg/memory.h>
+#include <zpkg/error.h>
+#include <zpkg/strings.h>
 
 // Explicit declaration some variable
 #define Z_UNUSED(x) (void)x;
 
-// disable copy move 
+// min max
+#define Z_MIN(a, b) (((a) < (b))? (a) : (b))
+#define Z_MAX(a, b) (((a) < (b))? (b) : (a))
+
+// delete wrap
+#define Z_DELETE_P(p) \
+    delete p;         \
+    p = NULL;         \
+    (void)0
+
+#define Z_DELETE_PA(pa) \
+    delete[] pa;        \
+    pa = NULL;          \
+    (void)0
+
+#define Z_IF_DELETE_P(p) \
+    if (p) {             \
+        delete p;        \
+        p = NULL;        \
+    }                    \
+    (void)0
+
+#define Z_IF_DELETE_PA(pa) \
+    if (pa) {              \
+        delete[] pa;       \
+        pa = NULL;         \
+    }                      \
+    (void)0
+
+// disable copy move macro
 #define Z_DISABLE_COPY(Class) \
     Class(const Class &) = delete;\
     Class &operator=(const Class &) = delete;
@@ -51,7 +82,6 @@
 #define Z_DISABLE_COPY_MOVE(Class) \
     Z_DISABLE_COPY(Class) \
     Z_DISABLE_MOVE(Class)
-
 
 namespace zpkg{
 
@@ -69,6 +99,23 @@ struct apply_shared{
     using shared = std::shared_ptr<T>;
     using weak = std::weak_ptr<T>;
 };
+
+template<typename Fn>
+class defer{
+public:
+    defer(Fn&& fn):fn_{std::forward<Fn>(fn)}{
+
+    };
+    ~defer(){
+        fn_();
+    }
+private:
+    const Fn fn_;
+};
+template<typename Fn>
+inline std::unique_ptr<defer<Fn>> at_defer(Fn&& fn){
+    return std::make_unique<defer<Fn>>(std::forward<Fn>(fn));
+}
 
 };//!namespace zpkg
 

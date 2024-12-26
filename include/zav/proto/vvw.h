@@ -1,10 +1,10 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2024 zhaoj
  * 
  * LICENSE
- * 
- * MIT License
  *
+ * MIT License
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -22,65 +22,67 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
+ * 
  */
 
- /**
+/**
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
 
-#ifndef ZIO_EPOLL_POLLER_H_
-#define ZIO_EPOLL_POLLER_H_
+#ifndef ZAV_PROTO_VVW_H_
+#define ZAV_PROTO_VVW_H_
 
-#include "zio/io_poller.h"
-#include <atomic>
-#include <unordered_map>
-#include <unordered_set>
+#include <string>
 
-namespace zio{
+namespace zav{
 
-using epoll_handle = int;
+/**
+ * represent a Virtual Video Wall
+ * 3*3 represent follows
+ * 1 2 3
+ * 4 5 6
+ * 7 8 9
+ * 2*1 represent follws
+ * 1
+ * 2
+*/
 
-enum{
-    // invalid epoll handle defind
-    epoll_invalie_handle = -1,
-    // max io epoll events in one loop
-    epoll_max_io_events = 1024
+struct Rect{
+    uint32_t XCord;
+    uint32_t YCord;
+    uint32_t Width;
+    uint32_t Height;
 };
 
-class epoll_poller{
+class VirtualVideoWall{
 public:
-    static epoll_poller* create();
-private:
-    explicit epoll_poller(epoll_handle handle);
-public:
-    ~epoll_poller();
+    VirtualVideoWall(const std::string& wallid,int screenRow,int screenCol);
+    ~VirtualVideoWall() = default;
 
-    void add_fd(zio_fd_t fd,io_handler_t* handler);
-    void rm_fd(zio_fd_t fd);
-    void set_in_event(zio_fd_t fd);
-    void reset_in_event(zio_fd_t fd);
-    void set_out_event(zio_fd_t fd);
-    void reset_out_event(zio_fd_t fd);
-    uint32_t load();
+    std::string ID() const;
+    int Row() const;
+    int Col() const;
 
-    void poll(int timeout = -1);
+    Rect Screen(int screenid);
 
 private:
-
-private:
-    epoll_handle epoll_fd_;
-    std::atomic<uint32_t> load_;
-    std::unordered_map<zio_fd_t,io_handler_t*> fd_map_;
-    Z_DISABLE_COPY_MOVE(epoll_poller)
+    std::string wall_id_;
+    int screen_row_;
+    int screen_col_;
 };
+////////////////////////implemantation///////////////////////////////
+inline std::string VirtualVideoWall::ID() const{
+    return wall_id_;
+}
+inline int VirtualVideoWall::Row() const{
+    return screen_row_;
+}
+inline int VirtualVideoWall::Col() const{
+    return screen_col_;
+}
+////////////////////////implemantation///////////////////////////////
 
+};//!namespace zav
 
-
-
-};
-
-
-
-#endif //!ZIO_EPOLL_POLLER_H_
+#endif//!ZAV_PROTO_VVW_H_

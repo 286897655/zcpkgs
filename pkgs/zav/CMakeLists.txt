@@ -3,7 +3,8 @@
 file(GLOB_RECURSE ZAV_SRC ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp 
                           ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
                           ${CMAKE_CURRENT_SOURCE_DIR}/*.h
-                          ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
+                          ${CMAKE_CURRENT_SOURCE_DIR}/*.c
+                          ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
 
 add_library(zav STATIC ${ZAV_SRC})
 target_include_directories(zav PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

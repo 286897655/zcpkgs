@@ -38,7 +38,7 @@
 
 namespace zio{
 
-epoll_handle epoll_poller::create_epoll_handle()
+static epoll_handle create_epoll_handle()
 {
 #if defined(EPOLL_CLOEXEC)
     epoll_handle fd = epoll_create1(EPOLL_CLOEXEC);
@@ -55,6 +55,15 @@ epoll_handle epoll_poller::create_epoll_handle()
     return fd;
 }
 
+epoll_poller* epoll_poller::create()
+{
+    epoll_handle handle = create_epoll_handle();
+    if(handle == epoll_invalie_handle){
+        return nullptr;
+    }
+    return new epoll_poller(handle);
+}
+
 epoll_poller::epoll_poller(epoll_handle handle):epoll_fd_(handle)
 {
 
@@ -68,22 +77,22 @@ epoll_poller::~epoll_poller()
 
 void epoll_poller::add_fd(zio_fd_t fd,io_handler_t* handler)
 {
-    struct epoll_event ev = {0};
-    ev.events = toEpoll(event) ;
-    ev.data.fd = fd;
-    const int rc = epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev);
+    // struct epoll_event ev = {0};
+    // ev.events = toEpoll(event) ;
+    // ev.data.fd = fd;
+    // const int rc = epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev);
 }
 
 void epoll_poller::rm_fd(zio_fd_t fd)
 {
-    const int rc = epoll_ctl(epoll_fd_, EPOLL_CTL_DEL,fd,NULL);
+    //const int rc = epoll_ctl(epoll_fd_, EPOLL_CTL_DEL,fd,NULL);
 }
 
 void epoll_poller::set_in_event(zio_fd_t fd)
 {
-    struct epoll_event ev = {0};
-    ev.events = toEpoll(event) ;
-    ev.data.fd = fd;
+    // struct epoll_event ev = {0};
+    // ev.events = toEpoll(event) ;
+    // ev.data.fd = fd;
 }
 
 void epoll_poller::reset_in_event(zio_fd_t fd)
@@ -103,7 +112,7 @@ void epoll_poller::reset_out_event(zio_fd_t fd)
 
 uint32_t epoll_poller::load()
 {
-
+    return 0;
 }
 
 void epoll_poller::poll(int timeout)
@@ -113,7 +122,7 @@ void epoll_poller::poll(int timeout)
     if(event_count <= 0){
         return;
     }
-
+    
     
 }
 
