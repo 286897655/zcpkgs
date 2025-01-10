@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -33,6 +33,7 @@
 #include <zpkg/utility.h>
 #include <zlog/log.h>
 #include "epoll_poller.h"
+#include "wake_up_pipe.h"
 
 namespace zio{
 
@@ -102,6 +103,10 @@ void io_loop_t::init()
     thread_loop = this;
 }
 
+void io_loop_t::wake_up(){
+    wake_up_->wake_up();
+}
+
 void io_loop_t::async(std::function<void()>&& callback)
 {
     if(is_this_thread_loop()){
@@ -140,34 +145,34 @@ void io_poller_t::poll()
     epoll_poller_->poll();
 }
 
-void io_poller_t::add_fd(zio_fd_t fd,io_handler_t* handler)
+poll_handle_t io_poller_t::add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler)
 {
-    return epoll_poller_->add_fd(fd,handler);
+    return epoll_poller_->add_fd(fd,poll_event,handler);
 }
 
-void io_poller_t::rm_fd(zio_fd_t fd)
+void io_poller_t::rm_fd(poll_handle_t handle)
 {
-    return epoll_poller_->rm_fd(fd);
+    return epoll_poller_->rm_fd(handle);
 }
 
-void io_poller_t::set_in_event(zio_fd_t fd)
+void io_poller_t::set_in_event(poll_handle_t handle)
 {
-    return epoll_poller_->set_in_event(fd);
+    return epoll_poller_->set_in_event(handle);
 }
 
-void io_poller_t::reset_in_event(zio_fd_t fd)
+void io_poller_t::reset_in_event(poll_handle_t handle)
 {
-    return epoll_poller_->reset_in_event(fd);
+    return epoll_poller_->reset_in_event(handle);
 }
 
-void io_poller_t::set_out_event(zio_fd_t fd)
+void io_poller_t::set_out_event(poll_handle_t handle)
 {
-    return epoll_poller_->set_out_event(fd);
+    return epoll_poller_->set_out_event(handle);
 }
 
-void io_poller_t::reset_out_event(zio_fd_t fd)
+void io_poller_t::reset_out_event(poll_handle_t handle)
 {
-    return epoll_poller_->reset_out_event(fd);
+    return epoll_poller_->reset_out_event(handle);
 }
 
 uint32_t io_poller_t::load()

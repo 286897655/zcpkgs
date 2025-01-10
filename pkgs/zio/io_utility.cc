@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -30,60 +30,34 @@
  * @brief 
  */
 
-#ifndef ZIO_EPOLL_POLLER_H_
-#define ZIO_EPOLL_POLLER_H_
-
-#include "zio/io_poller.h"
-#include <atomic>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+#include "zio/io_utility.h"
+#include <zpkg/utility.h>
+#include <fcntl.h>
 
 namespace zio{
 
-using epoll_handle = int;
+void fd_control::make_non_blocking(io_fd_t fd){
+#ifdef Z_SYS_WINDOWS
+    u_long nonblock = 1;
+    const int rc = ioctlsocket (fd, FIONBIO, &nonblock);
+#elif Z_SYS_LINUX
+    int flags = ::fcntl (fd, F_GETFL, 0);
+    if (flags < 0)
+        flags = 0;
+    const int rc = ::fcntl (fd, F_SETFL, flags | O_NONBLOCK);
+#endif
+    Z_ASSERT(rc >= 0);
+}
 
-enum{
-    // invalid epoll handle defind
-    epoll_invalie_handle = -1,
-    // max io epoll events in one loop
-    epoll_max_io_events = 1024
-};
+void fd_control::make_close_on_exec(io_fd_t fd){
+#ifdef Z_SYS_LINUX
+    int flags = fcntl(fd, F_GETFD);
+    if(flags < 0){
+        flags =0;
+    }
+    const int rc = ::fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+    Z_ASSERT(rc >= 0);
+#endif
+}
 
-struct epoll_entity_t;
-
-class epoll_poller{
-public:
-    static epoll_poller* create();
-private:
-    explicit epoll_poller(epoll_handle handle);
-public:
-    ~epoll_poller();
-
-    poll_handle_t add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler);
-    void rm_fd(poll_handle_t handle);
-    void set_in_event(poll_handle_t handle);
-    void reset_in_event(poll_handle_t handle);
-    void set_out_event(poll_handle_t handle);
-    void reset_out_event(poll_handle_t handle);
-    uint32_t load();
-
-    void poll(int timeout = -1);
-
-private:
-    
-private:
-    epoll_handle epoll_fd_;
-    uint32_t load_;
-    std::vector<struct epoll_entity_t*> retired_;
-    Z_DISABLE_COPY_MOVE(epoll_poller)
-};
-
-
-
-
-};
-
-
-
-#endif //!ZIO_EPOLL_POLLER_H_
+};//!namespace zio

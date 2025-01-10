@@ -39,20 +39,24 @@
 #include <zpkg/utility.h>
 #include <zio/timer.h>
 
+namespace zio{
 #if defined _WIN32
 // Windows uses a pointer-sized unsigned integer to store the socket fd.
 #if defined _WIN64
-typedef unsigned __int64 zio_fd_t;
+typedef unsigned __int64 io_fd_t;
 #else
-typedef unsigned int zio_fd_t;
+typedef unsigned int io_fd_t;
 #endif
 #else
-typedef int zio_fd_t;
+typedef int io_fd_t;
 #endif
 
-namespace zio{
+enum{
+    invalid_io_fd_t = -1//
+};
+
 class io_poller_t;
-
+class wake_up_pipe_t;
 class io_loop_t{
 public:
     // 在主线程中先调用一次
@@ -75,26 +79,37 @@ private:
 
     // run in loop thread
     void init();
-
+    void wake_up();
 private:
 
     std::string loop_name_;
     std::thread* loop_thread_;
     io_poller_t* loop_poller_;
-
+    wake_up_pipe_t* wake_up_;
     //std::multimap<uint64_t, timer_info_t> timers_t;
     Z_DISABLE_COPY_MOVE(io_loop_t)
 };
 
-class io_handler_t{
+enum poll_event_type{
+    // 0000
+    event_LT = 0,// default EPOLLLT
+    // 0001
+    event_read = 1 << 0,//EPOLLIN = 0x001
+    // 0010
+    event_write = 1 << 2,//EPOLLOUT = 0x004
+    // 0100
+    event_error = 1 << 3,//(EPOLLERR | EPOLLHUP)
+    // 10000
+    event_ET = 1 << 4, // EPOLLET = 1u << 31
+};
+class poll_event_handler{
 public:
     virtual void in_event() = 0;
     virtual void out_event() = 0;
-    virtual void timer_event() = 0;
-    virtual void on_error() = 0;
-    virtual zio_fd_t fd() = 0;
+    virtual void error_event() = 0;
 };
 
+using poll_handle_t = void*;
 class epoll_poller;
 class io_poller_t{
 public:
@@ -102,12 +117,12 @@ public:
     ~io_poller_t();
 
     void poll();
-    void add_fd(zio_fd_t fd,io_handler_t* handler);
-    void rm_fd(zio_fd_t fd);
-    void set_in_event(zio_fd_t fd);
-    void reset_in_event(zio_fd_t fd);
-    void set_out_event(zio_fd_t fd);
-    void reset_out_event(zio_fd_t fd);
+    poll_handle_t add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler);
+    void rm_fd(poll_handle_t handle);
+    void set_in_event(poll_handle_t handle);
+    void reset_in_event(poll_handle_t handle);
+    void set_out_event(poll_handle_t handle);
+    void reset_out_event(poll_handle_t handle);
     uint32_t load();
 
 private:

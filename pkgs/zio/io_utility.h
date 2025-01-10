@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -29,61 +29,25 @@
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
+#ifndef ZIO_IO_UTILITY_H_
+#define ZIO_IO_UTILITY_H_
 
-#ifndef ZIO_EPOLL_POLLER_H_
-#define ZIO_EPOLL_POLLER_H_
-
-#include "zio/io_poller.h"
-#include <atomic>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+#include <zio/io_poller.h>
 
 namespace zio{
 
-using epoll_handle = int;
-
-enum{
-    // invalid epoll handle defind
-    epoll_invalie_handle = -1,
-    // max io epoll events in one loop
-    epoll_max_io_events = 1024
+class fd_control{
+public:
+    static void make_non_blocking(io_fd_t fd);
+    static void make_close_on_exec(io_fd_t fd);
 };
 
-struct epoll_entity_t;
-
-class epoll_poller{
+class socket_control{
 public:
-    static epoll_poller* create();
-private:
-    explicit epoll_poller(epoll_handle handle);
-public:
-    ~epoll_poller();
-
-    poll_handle_t add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler);
-    void rm_fd(poll_handle_t handle);
-    void set_in_event(poll_handle_t handle);
-    void reset_in_event(poll_handle_t handle);
-    void set_out_event(poll_handle_t handle);
-    void reset_out_event(poll_handle_t handle);
-    uint32_t load();
-
-    void poll(int timeout = -1);
-
-private:
+    static void make_tcp_no_delay(io_fd_t fd);
     
-private:
-    epoll_handle epoll_fd_;
-    uint32_t load_;
-    std::vector<struct epoll_entity_t*> retired_;
-    Z_DISABLE_COPY_MOVE(epoll_poller)
 };
 
+};//!namespace zio
 
-
-
-};
-
-
-
-#endif //!ZIO_EPOLL_POLLER_H_
+#endif//!ZIO_IO_UTILITY_H_

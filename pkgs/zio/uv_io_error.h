@@ -602,4 +602,15 @@ typedef enum {
 #undef XX
   UV_ERRNO_MAX = UV__EOF - 1
 } uv_errno_t;
+
+namespace zio{
+
+const char* uv_err_name(int err);
+const char* uv_strerror(int err);
+int uv_last_error(bool win_net_error = true);
+
+};
+
+
+
 #endif //!ZIO_UV_IO_ERROR_H_

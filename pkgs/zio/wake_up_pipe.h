@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -30,60 +30,54 @@
  * @brief 
  */
 
-#ifndef ZIO_EPOLL_POLLER_H_
-#define ZIO_EPOLL_POLLER_H_
+#ifndef ZIO_WAKE_UP_PIPE_H_
+#define ZIO_WAKE_UP_PIPE_H_
 
 #include "zio/io_poller.h"
-#include <atomic>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
 namespace zio{
 
-using epoll_handle = int;
-
-enum{
-    // invalid epoll handle defind
-    epoll_invalie_handle = -1,
-    // max io epoll events in one loop
-    epoll_max_io_events = 1024
-};
-
-struct epoll_entity_t;
-
-class epoll_poller{
+class wake_up_pipe_t final: public poll_event_handler{
 public:
-    static epoll_poller* create();
-private:
-    explicit epoll_poller(epoll_handle handle);
-public:
-    ~epoll_poller();
+    explicit wake_up_pipe_t(io_poller_t* poller);
+    ~wake_up_pipe_t();
 
-    poll_handle_t add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler);
-    void rm_fd(poll_handle_t handle);
-    void set_in_event(poll_handle_t handle);
-    void reset_in_event(poll_handle_t handle);
-    void set_out_event(poll_handle_t handle);
-    void reset_out_event(poll_handle_t handle);
-    uint32_t load();
+    void wake_up();
+protected:
+    virtual void in_event() override{
+        int ret;
+        char buf[256];
+        do{
+            ret = ::read(pipe_fd_[0],buf,sizeof(buf));
+            if(ret > 0){
+                // pipe data read until eof or empty
+                continue;
+            }
+        }while(-1 == ret && UV_EINTR == uv_last_error());
 
-    void poll(int timeout = -1);
+        if(ret == 0 || uv_last_error() != UV_EAGAIN){
+            // 
+        }
+    }
 
+    virtual void out_event() override{
+
+    }
+
+    virtual void error_event() override{
+
+    }
 private:
-    
+    void re_open();
+    void close();
 private:
-    epoll_handle epoll_fd_;
-    uint32_t load_;
-    std::vector<struct epoll_entity_t*> retired_;
-    Z_DISABLE_COPY_MOVE(epoll_poller)
+    io_poller_t* poller_;
+    poll_handle_t poll_handle_;
+    // 0 for read ,1 for write
+    io_fd_t pipe_fd_[2];
 };
 
 
+};//!namespace zio
 
-
-};
-
-
-
-#endif //!ZIO_EPOLL_POLLER_H_
+#endif//!ZIO_WAKE_UP_PIPE_H_

@@ -87,7 +87,6 @@ bool m3u8_parser::parse(const std::string& m3u8_content){
         zpkg::strings::trim(cur_line);
         if(cur_line.size() < 2)
             continue;
-        cur_inf_duration = 0.0f;
         // #EXTM3U
         if(cur_line.find(kM3U8_START) == 0){
             is_m3u8 = true;
@@ -147,6 +146,22 @@ bool m3u8_parser::parse(const std::string& m3u8_content){
     }
     // parse success
     return true;
+}
+
+std::string m3u8_parser::format(){
+    std::ostringstream oss;
+    oss << "m3u8_url:" << m3u8_url << zpkg::kstrings::kLF
+        << "is_m3u8:" << is_m3u8 << zpkg::kstrings::kLF
+        << "allow_cache:"<< allow_cache << zpkg::kstrings::kLF
+        << "is_live:"<<is_live << zpkg::kstrings::kLF
+        << "embedded_m3u8:"<<embedded_m3u8 << zpkg::kstrings::kLF
+        << "version:" << version << zpkg::kstrings::kLF
+        << "target_duration:"<<target_duration << zpkg::kstrings::kLF
+        << "total_duration:"<<total_duration << zpkg::kstrings::kLF
+        << "media_sequence:" << media_sequence << zpkg::kstrings::kLF
+        << std::endl;
+    
+    return oss.str();
 }
 
 };//!namespace zav

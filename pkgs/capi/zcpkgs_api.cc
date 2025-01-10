@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -29,7 +29,16 @@
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
-#ifndef ZIO_TIMER_H_
-#define ZIO_TIMER_H_
 
-#endif//!ZIO_TIMER_H_
+#include "zcpkgs_api.h"
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
+
+
+
+#ifdef __cplusplus
+}
+#endif

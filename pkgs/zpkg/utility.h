@@ -83,6 +83,11 @@
     Z_DISABLE_COPY(Class) \
     Z_DISABLE_MOVE(Class)
 
+// virtual pure func mark
+#ifndef PURE_FUNC
+#define PURE_FUNC(Func) virtual Func = 0
+#endif
+
 namespace zpkg{
 
 /// @brief wrap for unique_ptr

@@ -79,7 +79,7 @@ public:
 
     bool parse(const std::string& m3u8_content);
 
-
+    std::string format();
 };
 
 

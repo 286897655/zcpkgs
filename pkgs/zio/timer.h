@@ -29,61 +29,21 @@
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
+#ifndef ZIO_TIMER_H_
+#define ZIO_TIMER_H_
 
-#ifndef ZIO_EPOLL_POLLER_H_
-#define ZIO_EPOLL_POLLER_H_
-
-#include "zio/io_poller.h"
-#include <atomic>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+#include <zio/io_poller.h>
+#include <zpkg/clock.h>
 
 namespace zio{
 
-using epoll_handle = int;
+using z_time_t = zpkg::z_time_t;
 
-enum{
-    // invalid epoll handle defind
-    epoll_invalie_handle = -1,
-    // max io epoll events in one loop
-    epoll_max_io_events = 1024
-};
-
-struct epoll_entity_t;
-
-class epoll_poller{
+class timer_t{
 public:
-    static epoll_poller* create();
-private:
-    explicit epoll_poller(epoll_handle handle);
-public:
-    ~epoll_poller();
-
-    poll_handle_t add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler);
-    void rm_fd(poll_handle_t handle);
-    void set_in_event(poll_handle_t handle);
-    void reset_in_event(poll_handle_t handle);
-    void set_out_event(poll_handle_t handle);
-    void reset_out_event(poll_handle_t handle);
-    uint32_t load();
-
-    void poll(int timeout = -1);
-
-private:
-    
-private:
-    epoll_handle epoll_fd_;
-    uint32_t load_;
-    std::vector<struct epoll_entity_t*> retired_;
-    Z_DISABLE_COPY_MOVE(epoll_poller)
+    timer_t(io_poller_t* poller,z_time_t msec_interval);
 };
 
+}
 
-
-
-};
-
-
-
-#endif //!ZIO_EPOLL_POLLER_H_
+#endif//!ZIO_TIMER_H_

@@ -8,4 +8,18 @@
 
 3、LT的写事件要注意在socket写之前才开启写事件监听 写完后关闭写事件监听 否则会一直触发可写事件
 
-4、实现小目标为支持异步http的client和server
+4、epoll的event_data 不使用fd 使用ptr，用fd得每次做一个查找fd对应的事件，直接使用ptr可以在epoll_wait直接dispatch 事件 这种方式就是得注意指针释放的问题
+
+
+
+accept上的问题阻塞模式 accept 存在的问题考虑这种情况：TCP连接被客户端夭折，即在服务器调用accept之前，客户端主动发送RST终止连接，导致刚刚建立的连接从就绪队列中移出，如果套接口被设置成阻塞模式，服务器就会一直阻塞在accept调用上，直到其他某个客户建立一个新的连接为止。但是在此期间，服务器单纯地阻塞在accept调用上，就绪队列中的其他描述符都得不到处理。
+解决方案：把监听套接口设置为非阻塞，当客户在服务器调用accept之前中止某个连接时，accept调用可以立即返回-1，这时源自Berkeley的实现会在内核中处理该事件，并不会将该事件通知给epoll，而其他实现把errno设置为ECONNABORTED或者EPROTO错误，我们应该忽略这两个错误。
+ET模式下accept存在的问题。考虑这种情况：多个连接同时到达，服务器的TCP就绪队列瞬间积累多个就绪连接，由于是边缘触发模式，epoll只会通知一次，accept只处理一个连接，导致TCP就绪队列中剩下的连接都得不到处理。解决办法是用while循环抱住accept调用，处理完TCP就绪队列中的所有连接后再退出循环。如何知道是否处理完就绪队列中的所有连接呢？accept返回-1并且errno设置为EAGAIN就表示所有连接都处理完。综合以上两种情况，服务器应该使用非阻塞地accept，accept在ET模式下的正确使用方式为：
+
+使用Linux epoll模型，水平触发模式；当socket可写时，会不停的触发socket可写的事件，如何处理？
+第一种最普遍的方式：需要向socket写数据的时候才把socket加入epoll，等待可写事件。接受到可写事件后，调用write或者send发送数据。当所有数据都写完后，把socket移出epoll。这种方式的缺点是，即使发送很少的数据，也要把socket加入epoll，写完后在移出epoll，有一定操作代价。
+第二种的方式：开始不把socket加入epoll，需要向socket写数据的时候，直接调用write或者send发送数据。如果返回EAGAIN，把socket加入epoll，在epoll的驱动下写数据，全部数据发送完毕后，再移出epoll。这种方式的优点是：数据不多的时候可以避免epoll的事件处理，提高效率。
+
+
+
+5、实现小目标为支持异步http的client和server

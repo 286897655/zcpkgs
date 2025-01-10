@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -30,60 +30,18 @@
  * @brief 
  */
 
-#ifndef ZIO_EPOLL_POLLER_H_
-#define ZIO_EPOLL_POLLER_H_
+#ifndef ZCPKGS_C_API_H_
+#define ZCPKGS_C_API_H_
 
-#include "zio/io_poller.h"
-#include <atomic>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
-namespace zio{
-
-using epoll_handle = int;
-
-enum{
-    // invalid epoll handle defind
-    epoll_invalie_handle = -1,
-    // max io epoll events in one loop
-    epoll_max_io_events = 1024
-};
-
-struct epoll_entity_t;
-
-class epoll_poller{
-public:
-    static epoll_poller* create();
-private:
-    explicit epoll_poller(epoll_handle handle);
-public:
-    ~epoll_poller();
-
-    poll_handle_t add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler);
-    void rm_fd(poll_handle_t handle);
-    void set_in_event(poll_handle_t handle);
-    void reset_in_event(poll_handle_t handle);
-    void set_out_event(poll_handle_t handle);
-    void reset_out_event(poll_handle_t handle);
-    uint32_t load();
-
-    void poll(int timeout = -1);
-
-private:
-    
-private:
-    epoll_handle epoll_fd_;
-    uint32_t load_;
-    std::vector<struct epoll_entity_t*> retired_;
-    Z_DISABLE_COPY_MOVE(epoll_poller)
-};
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 
 
 
-};
+#ifdef __cplusplus
+}
+#endif
 
-
-
-#endif //!ZIO_EPOLL_POLLER_H_
+#endif//!ZCPKGS_C_API_H_
