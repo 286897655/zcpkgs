@@ -38,6 +38,8 @@
 #include <thread>
 #include <zpkg/utility.h>
 #include <zio/timer.h>
+#include <vector>
+#include <mutex>
 
 namespace zio{
 #if defined _WIN32
@@ -59,6 +61,7 @@ class io_poller_t;
 class wake_up_pipe_t;
 class io_loop_t{
 public:
+    using call_back_func = std::function<void()>;
     // 在主线程中先调用一次
     static io_loop_t* default_loop();
     static io_loop_t* next_loop();
@@ -67,7 +70,7 @@ public:
     static size_t create_loop_pool(const std::string& name="",size_t count = 0);
     
 public:
-    void async(std::function<void()>&& callback);
+    void async(call_back_func&& callback);
     void run();
     bool is_this_thread_loop() const;
     io_poller_t* poller() const;
@@ -79,13 +82,15 @@ private:
 
     // run in loop thread
     void init();
-    void wake_up();
+    void on_wake_up();
 private:
-
+    friend class wake_up_pipe_t;
     std::string loop_name_;
     std::thread* loop_thread_;
     io_poller_t* loop_poller_;
     wake_up_pipe_t* wake_up_;
+    std::mutex task_mtx_;
+    std::vector<call_back_func> async_tasks_;
     //std::multimap<uint64_t, timer_info_t> timers_t;
     Z_DISABLE_COPY_MOVE(io_loop_t)
 };
@@ -106,7 +111,6 @@ class poll_event_handler{
 public:
     virtual void in_event() = 0;
     virtual void out_event() = 0;
-    virtual void error_event() = 0;
 };
 
 using poll_handle_t = void*;

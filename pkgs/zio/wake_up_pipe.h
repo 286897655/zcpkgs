@@ -34,44 +34,24 @@
 #define ZIO_WAKE_UP_PIPE_H_
 
 #include "zio/io_poller.h"
-
 namespace zio{
 
+// 先用传统pipe实现方式，后续考虑改为 eventfd方式，eventfd方式windows不支持
 class wake_up_pipe_t final: public poll_event_handler{
 public:
-    explicit wake_up_pipe_t(io_poller_t* poller);
+    explicit wake_up_pipe_t(io_loop_t* loop);
     ~wake_up_pipe_t();
 
     void wake_up();
 protected:
-    virtual void in_event() override{
-        int ret;
-        char buf[256];
-        do{
-            ret = ::read(pipe_fd_[0],buf,sizeof(buf));
-            if(ret > 0){
-                // pipe data read until eof or empty
-                continue;
-            }
-        }while(-1 == ret && UV_EINTR == uv_last_error());
-
-        if(ret == 0 || uv_last_error() != UV_EAGAIN){
-            // 
-        }
-    }
-
-    virtual void out_event() override{
-
-    }
-
-    virtual void error_event() override{
-
-    }
+    virtual void in_event() override;
+    virtual void out_event() override;
 private:
     void re_open();
     void close();
+
 private:
-    io_poller_t* poller_;
+    io_loop_t* loop_;
     poll_handle_t poll_handle_;
     // 0 for read ,1 for write
     io_fd_t pipe_fd_[2];

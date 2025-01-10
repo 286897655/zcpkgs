@@ -39,6 +39,7 @@ namespace zio{
 
 using z_time_t = zpkg::z_time_t;
 
+// 先用std::multi_map实现 后面考虑更改为内核提供的timerfd
 class timer_t{
 public:
     timer_t(io_poller_t* poller,z_time_t msec_interval);

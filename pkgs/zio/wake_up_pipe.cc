@@ -31,34 +31,73 @@
  */
 
 #include "wake_up_pipe.h"
+#include <unistd.h>
+#include <zlog/log.h>
 #include "uv_io_error.h"
+#include "io_utility.h"
 namespace zio{
 
-wake_up_pipe_t::wake_up_pipe_t(io_poller_t* poller):poller_(poller),poll_handle_(nullptr){
+wake_up_pipe_t::wake_up_pipe_t(io_loop_t* loop)
+    :loop_(loop),poll_handle_(nullptr)
+{
     pipe_fd_[0] = -1;
     pipe_fd_[1] = -1;
     re_open();
 }
 
-wake_up_pipe_t::~wake_up_pipe_t(){
+wake_up_pipe_t::~wake_up_pipe_t()
+{
     close();
 }
 
-void wake_up_pipe_t::wake_up(){
+void wake_up_pipe_t::wake_up()
+{
+    int ret;
+    do{
+        ret = ::write(pipe_fd_[1],"",1);
+    }while(-1 == ret && uv_last_error() == UV_EINTR);
+}
 
+void wake_up_pipe_t::in_event(){
+    int ret;
+    char buf[256];
+    do{
+        ret = ::read(pipe_fd_[0],buf,sizeof(buf));
+        if(ret > 0){
+            // pipe data read until eof or empty
+            continue;
+        }
+    }while(-1 == ret && UV_EINTR == uv_last_error());
+
+    if(ret == 0 || uv_last_error() != UV_EAGAIN){
+        // read eof or non-EAGAIN error,pipe is invalid, reopen it
+        zlog_warn("zio:wake up pipe invalid,reopen it");
+        // delete event poll from poller
+        loop_->poller()->rm_fd(poll_handle_);
+        re_open();
+        // add event poll to poller
+        poll_handle_ = loop_->poller()->add_fd(pipe_fd_[0],event_read,this);
+    }
+
+    // wake for loop
+    loop_->on_wake_up();
+}
+
+void wake_up_pipe_t::out_event(){
+    Z_ASSERT("zio:wake_up_pipe has no out event!" == 0);
 }
 
 void wake_up_pipe_t::re_open(){
-     if(pipe(pipe_fd_) < 0){
-            throw std::runtime_error("create posix pipe fail,throw for aborted");
-        }
-        fd_control::make_non_blocking(pipe_fd_[0]);
-        fd_control::make_close_on_exec(pipe_fd_[0]);
-        fd_control::make_non_blocking(pipe_fd_[1]);
-        fd_control::make_close_on_exec(pipe_fd_[1]);
+    if(::pipe(pipe_fd_) < 0){
+        throw std::runtime_error("create posix pipe fail,throw for aborted");
+    }
+    fd_control::make_non_blocking(pipe_fd_[0]);
+    fd_control::make_close_on_exec(pipe_fd_[0]);
+    fd_control::make_non_blocking(pipe_fd_[1]);
+    fd_control::make_close_on_exec(pipe_fd_[1]);
 
-        // 加入poller监听
-        poll_handle_ = poller_->add_fd(pipe_fd_[0],event_read,this);
+    // add to poller
+    poll_handle_ = loop_->poller()->add_fd(pipe_fd_[0],event_read,this);
 }
 
 void wake_up_pipe_t::close(){

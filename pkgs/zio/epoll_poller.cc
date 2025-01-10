@@ -169,8 +169,9 @@ void epoll_poller::poll(int timeout)
             continue;
         }
         if(epoll_event.events & (EPOLLERR | EPOLLHUP)){
-            // poll error for error event
-            epoll_entity->poll_handler->error_event();
+            // poll error for in event to read and got error
+            // then delete or process other 
+            epoll_entity->poll_handler->in_event();
         }
         // may be delete in error event then ignore again
         if(epoll_entity->fd == invalid_io_fd_t){

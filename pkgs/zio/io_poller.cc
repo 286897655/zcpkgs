@@ -103,18 +103,40 @@ void io_loop_t::init()
     thread_loop = this;
 }
 
-void io_loop_t::wake_up(){
-    wake_up_->wake_up();
-}
-
-void io_loop_t::async(std::function<void()>&& callback)
+void io_loop_t::async(call_back_func&& callback)
 {
     if(is_this_thread_loop()){
+
         callback();
         return;
     }
     // not in this thread insert to tasklist
+    {
+        std::lock_guard<std::mutex> lock(task_mtx_);
+        async_tasks_.emplace_back(callback);
+    }
+    // wake up poller
+    wake_up_->wake_up();
+}
 
+void io_loop_t::on_wake_up(){
+    Z_ASSERT(is_this_thread_loop());
+
+    // flush task's
+    std::vector<call_back_func> swap_task;
+    {
+        std::lock_guard<std::mutex> lock(task_mtx_);
+        swap_task.swap(async_tasks_);
+    }
+    try{
+        for(const auto& func : swap_task){
+            func();
+        }
+    }catch(const std::exception& ex){
+        zlog("zio:do call back got exception:{}",ex.what());
+    }catch(...){
+        zlog("zio:do call back got unhandled exception");
+    }
 }
 
 bool io_loop_t::is_this_thread_loop() const
