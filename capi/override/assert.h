@@ -36,21 +36,22 @@
 #include <stdio.h>
 
 #ifndef NDEBUG
-    #ifdef assert
-        #undef assert
-    #endif//assert
+#ifdef assert
+    #undef assert
+#endif//assert
 
-    #ifdef __cplusplus
-    extern "C" {
-    #endif
-        extern void assert2throw(int failed, const char *exp, const char *func, const char *file, int line, const char *str);
-    #ifdef __cplusplus
-    }
-    #endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+    // assert override extern
+    extern void z_assert(const char* assertion,const char* func,const char* file,int line);
+#ifdef __cplusplus
+}
+#endif
 
-    #define assert(exp) assert2throw(!(exp), #exp, __FUNCTION__, __FILE__, __LINE__, NULL)
+#define assert(cond) ((!(cond)) ? z_assert(#cond,__FUNCTION__,__FILE__,__LINE__) : ((void)0))
 #else
-    #define	assert(e)	((void)0)
+    #define	assert(cond)	((void)0)
 #endif//NDEBUG
 
 #endif//!ZPKG_EXTERN_ASSERT_H_

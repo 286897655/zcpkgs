@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -30,19 +30,22 @@
  * @brief 
  */
 
-#include "zpkg/extern/assert.h"
-#include <sstream>
-#include <ostream>
-#include <stdexcept>
+#ifndef ZCPKGS_CAPI_H_
+#define ZCPKGS_CAPI_H_
 
-extern "C" void assert2throw(int failed, const char *exp, const char *func, const char *file, int line, const char *str){
-    if (failed) {
-        std::ostringstream oss;
-        oss << "assert failed: (" << exp;
-        if(str && *str){
-            oss << "," << str;
-        }
-        oss << "), function " << func << ", file " << file << ", line " << line << ".";
-        throw std::runtime_error(oss.str());
+#include <zcpkgs_common.h>
+
+#ifdef __cplusplus
+    extern "C"{
+#endif
+
+// TODO other funcion
+// void zpkg_xxx();
+// void zav_xxx();
+// void zio_xxx();
+
+#ifdef __cplusplus
     }
-}
+#endif
+
+#endif//!ZCPKGS_CAPI_H_

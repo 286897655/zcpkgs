@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2025 code by zhaoj
+ * @copyright Copyright © 2020-2024 code by zhaoj
  * 
  * LICENSE
  * 
@@ -30,15 +30,26 @@
  * @brief 
  */
 
-#include "zcpkgs_api.h"
+#include "utility"
+#include <sstream>
+#include <ostream>
+#include <stdexcept>
 
 #ifdef __cplusplus
-extern "C"{
+    extern "C"{
 #endif
-
-
-
-
-#ifdef __cplusplus
+// assert override extern
+void zpkg_assert(const char* assertion,const char* func,const char* file,int line){
+    std::ostringstream oss;
+    oss << "assert failed:(" << assertion << "), function " << func << ", file " << file << ", line " << line << ".";
+    throw std::runtime_error(oss.str());
 }
+
+void zpkg_assert_w(const char* what,const char* asssertion,const char* func,const char* file,int line){
+    std::ostringstream oss;
+    oss << "assert for:(" << what << "), failed:(" << asssertion << "), function " << func << ", file " << file << ", line " << line << ".";
+    throw std::runtime_error(oss.str());
+}
+#ifdef __cplusplus
+    }
 #endif

@@ -33,19 +33,12 @@
 #ifndef ZPKG_UTILITY_H_
 #define ZPKG_UTILITY_H_
 
-#include <zpkg/portable.h>
 #include <zpkg/memory.h>
 #include <zpkg/error.h>
 #include <zpkg/strings.h>
+#include <zcpkgs_common.h>
 
-// Explicit declaration some variable
-#define Z_UNUSED(x) (void)x;
-
-// min max
-#define Z_MIN(a, b) (((a) < (b))? (a) : (b))
-#define Z_MAX(a, b) (((a) < (b))? (b) : (a))
-
-// delete wrap
+// c++ delete wrap
 #define Z_DELETE_P(p) \
     delete p;         \
     p = NULL;         \

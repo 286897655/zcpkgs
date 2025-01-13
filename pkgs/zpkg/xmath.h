@@ -63,7 +63,7 @@ using int32_frac_t = fraction<int32_t>;
 template<typename T,typename = enable_if_t<std::is_unsigned<T>::value>>
 bool check_add(T* result, T t1, T t2){
     Z_ASSERT(result != nullptr);
-    if (ZLikely(t1 < std::numeric_limits<T>::max() - t2)) {
+    if (Z_Likely(t1 < std::numeric_limits<T>::max() - t2)) {
         *result = t1 + t2;
         return true;
     } else {

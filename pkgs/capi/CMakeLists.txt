@@ -1,3 +1,3 @@
-add_library(assert2throw STATIC assert.cpp)
+add_library(zcpkgs_capi_static STATIC zcpkgs_api.cc)
 
-target_include_directories(assert2throw PUBLIC ${ZCF_ROOT}/include/)
+target_include_directories(zcpkgs_capi PUBLIC ${ZCF_ROOT}/include/)

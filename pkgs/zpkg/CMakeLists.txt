@@ -10,7 +10,7 @@ file(GLOB_RECURSE ZPKG_SRC  ${ZPKG_SRC_ROOT}/*.h
 list(APPEND ZPKG_SRC ${ZCPKGS_ROOT}/pkgs/zlog/log.cc)
 
 add_library(zpkg STATIC ${ZPKG_SRC})
-target_include_directories(zpkg PRIVATE ${ZPKG_SRC_ROOT}/pkgs/zpkg/)
+target_include_directories(zpkg PUBLIC ${ZCPKGS_ROOT}/pkgs)
 target_include_directories(zpkg PUBLIC ${ZCPKGS_ROOT}/include/)
 
 if(ARCH_AMD64)

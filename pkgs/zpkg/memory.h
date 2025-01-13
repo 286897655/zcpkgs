@@ -35,26 +35,6 @@
 
 #include <memory>
 
-// for delete pointer
-#ifndef delete_p
-#define delete_p(p) \
-    if (p) { \
-        delete p; \
-        p = NULL; \
-    } \
-    (void)0
-#endif
-
-// for delete array
-#ifndef delete_a
-#define delete_a(pa) \
-    if (pa) { \
-        delete[] pa; \
-        pa = NULL; \
-    } \
-    (void)0
-#endif
-
 /*
 * R/W means read/write, B/L means big/little/native endianness.
 */

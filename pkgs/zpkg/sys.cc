@@ -33,7 +33,7 @@
 #include "zpkg/sys.h"
 #include <sstream>
 #include <iostream>
-#include "zpkg/portable.h"
+#include "zpkg/utility.h"
 #include "zlog/log.h"
 #include "zpkg/time.h"
 #include "zpkg/strings.h"

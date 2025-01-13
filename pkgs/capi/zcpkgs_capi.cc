@@ -30,18 +30,12 @@
  * @brief 
  */
 
-#ifndef ZCPKGS_C_API_H_
-#define ZCPKGS_C_API_H_
+#include "zcpkgs_capi.h"
 
 #ifdef __cplusplus
-extern "C"{
+    extern "C"{
 #endif
-
-
-
 
 #ifdef __cplusplus
-}
+    }
 #endif
-
-#endif//!ZCPKGS_C_API_H_

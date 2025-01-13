@@ -41,7 +41,15 @@ set(APPEND_TARGET_LINK)
 set(APPEND_TARGET_LIB)
 
 # for assert.h(replace all assert to exception and don't abort)
-include_directories(${ZCPKGS_ROOT}/include/zpkg/extern/)
+include_directories(${ZCPKGS_ROOT}/capi/override/)
+include_directories(${ZCPKGS_ROOT}/capi/)
+
+# library
+# zpkg(include zlog) some cc utility module for dev
+# zav some av utility module for media frame work dev
+# zio some io utility module for network dev
+
+# |---------------------slivegateway/slivestreamproxy/slivesdkstream-------------------------------------|
 
 add_subdirectory(pkgs/zpkg)
 add_subdirectory(pkgs/zav)
