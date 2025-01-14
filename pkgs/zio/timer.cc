@@ -33,8 +33,8 @@
 #include "zio/timer.h"
 
 namespace zio{
-timer_t::timer_t(io_poller_t* poller,z_time_t msec_interval){
+// timer_t::timer_t(io_poller_t* poller,z_time_t msec_interval){
     
-}
+// }
 
 };//!namespace zio

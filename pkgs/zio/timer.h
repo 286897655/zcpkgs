@@ -33,17 +33,15 @@
 #define ZIO_TIMER_H_
 
 #include <zio/io_poller.h>
-#include <zpkg/clock.h>
+#include <zpkg/times.h>
 
 namespace zio{
 
-using z_time_t = zpkg::z_time_t;
-
 // 先用std::multi_map实现 后面考虑更改为内核提供的timerfd
-class timer_t{
-public:
-    timer_t(io_poller_t* poller,z_time_t msec_interval);
-};
+// class timer_t{
+// public:
+//     timer_t(io_poller_t* poller,z_time_t msec_interval);
+// };
 
 }
 

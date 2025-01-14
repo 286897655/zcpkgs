@@ -37,6 +37,7 @@
 #include <functional>
 #include <thread>
 #include <zpkg/utility.h>
+#include <zpkg/times.h>
 #include <zio/timer.h>
 #include <vector>
 #include <mutex>
@@ -117,7 +118,7 @@ using poll_handle_t = void*;
 class epoll_poller;
 class io_poller_t{
 public:
-    io_poller_t();
+    explicit io_poller_t(io_loop_t* loop);
     ~io_poller_t();
 
     void poll();
@@ -127,10 +128,13 @@ public:
     void reset_in_event(poll_handle_t handle);
     void set_out_event(poll_handle_t handle);
     void reset_out_event(poll_handle_t handle);
+    io_loop_t* own_loop();
     uint32_t load();
+
 
 private:
     epoll_poller* epoll_poller_;
+    io_loop_t* own_loop_;
     Z_DISABLE_COPY_MOVE(io_poller_t)
 };
 

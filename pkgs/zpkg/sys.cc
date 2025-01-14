@@ -35,7 +35,7 @@
 #include <iostream>
 #include "zpkg/utility.h"
 #include "zlog/log.h"
-#include "zpkg/time.h"
+#include "zpkg/times.h"
 #include "zpkg/strings.h"
 #ifdef Z_SYS_WINDOWS
 #include <windows.h>
@@ -258,7 +258,7 @@ static void sig_crash(int sig) {
     free(strings);
 
     std::stringstream ss;
-    ss << "## crash date:" << fmt_time_t("%Y-%m-%d %H:%M:%S") << std::endl;
+    ss << "## crash date:" << times::fmt_now_s() << std::endl;
     ss << "## exe:       " << sys_app_name() << std::endl;
     ss << "## signal:    " << sig << std::endl;
     ss << "## stack:     " << std::endl;

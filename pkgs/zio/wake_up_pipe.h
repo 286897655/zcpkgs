@@ -39,7 +39,7 @@ namespace zio{
 // 先用传统pipe实现方式，后续考虑改为 eventfd方式，eventfd方式windows不支持
 class wake_up_pipe_t final: public poll_event_handler{
 public:
-    explicit wake_up_pipe_t(io_loop_t* loop);
+    explicit wake_up_pipe_t(io_poller_t* poller);
     ~wake_up_pipe_t();
 
     void wake_up();
@@ -51,7 +51,7 @@ private:
     void close();
 
 private:
-    io_loop_t* loop_;
+    io_poller_t* poller_;
     poll_handle_t poll_handle_;
     // 0 for read ,1 for write
     io_fd_t pipe_fd_[2];

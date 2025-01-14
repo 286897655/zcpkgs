@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -30,27 +30,48 @@
  * @brief 
  */
 
-#include "zpkg/time.h"
-#include <ctime>
+#ifndef ZPKG_TIMES_H_
+#define ZPKG_TIMES_H_
+
+#include <string>
+
+using z_time_t = uint64_t;
+
+// The time unit in ms, for example 100 * Z_UTIME_MILLISECONDS means 100ms.
+#define Z_UTIME_MILLISECONDS 1000LL
+// The time unit in second, for example 120 * Z_UTIME_SECONDS means 120s.
+#define Z_UTIME_SECONDS 1000000LL
+
+// The time unit in minutes, for example 3 * Z_UTIME_MINUTES means 3m.
+#define Z_UTIME_MINUTES 60000000LL
+
+// The time unit in hours, for example 2 * Z_UTIME_HOURS means 2h.
+#define Z_UTIME_HOURS 3600000000LL
 
 namespace zpkg{
 
-std::string fmt_time_t(const char* fmt, time_t time)
-{
-    std::tm tm_snapshot;
-    if (!time) {
-        time = ::time(NULL);
-    }
-#if defined(Z_SYS_WINDOWS)
-    localtime_s(&tm_snapshot, &time); // thread-safe
-#else
-    localtime_r(&time, &tm_snapshot); // POSIX
-#endif
-    char buffer[1024];
-    auto success = ::strftime(buffer, sizeof(buffer), fmt, &tm_snapshot);
-    if (0 == success)
-        return std::string(fmt);
-    return buffer;
-}
+enum{
+    USEC_PER_MSEC = 1000LL,// 一毫秒1000微妙
+    USEC_PER_SEC  = 1000000LL,// 一秒1000000微妙
+    NSEC_PER_SEC  = 1000000000LL,// 一秒1000000000纳秒
+    NSEC_PER_USEC = 1000LL // 一微秒1000纳秒
+};
+
+class times{
+public:
+    static z_time_t now_ns();
+    static z_time_t now_us();
+    static z_time_t now_ms();
+    static std::string fmt_now_s(const char* fmt = "%Y-%m-%d %H:%M:%S");
+};
+
+
+class DateTime{
+
+};
+
 
 };//!namespace zpkg
+
+
+#endif//!ZPKG_TIMES_H_

@@ -37,8 +37,8 @@
 #include "io_utility.h"
 namespace zio{
 
-wake_up_pipe_t::wake_up_pipe_t(io_loop_t* loop)
-    :loop_(loop),poll_handle_(nullptr)
+wake_up_pipe_t::wake_up_pipe_t(io_poller_t* poller)
+    :poller_(poller),poll_handle_(nullptr)
 {
     pipe_fd_[0] = -1;
     pipe_fd_[1] = -1;
@@ -63,28 +63,29 @@ void wake_up_pipe_t::in_event(){
     char buf[256];
     do{
         ret = ::read(pipe_fd_[0],buf,sizeof(buf));
-        if(ret > 0){
-            // pipe data read until eof or empty
-            continue;
-        }
-    }while(-1 == ret && UV_EINTR == uv_last_error());
+        // pipe data read until eof or empty
+    }while((ret > 0) || (-1 == ret && UV_EINTR == uv_last_error()));
 
+    // for non-block pipe
+    // no data to read->read return -1 and error = UV_EAGAIN
+    // write full write->write return -1 and erro = UV_EAGIN
+    // ret == 0 means eof
     if(ret == 0 || uv_last_error() != UV_EAGAIN){
         // read eof or non-EAGAIN error,pipe is invalid, reopen it
         zlog_warn("zio:wake up pipe invalid,reopen it");
         // delete event poll from poller
-        loop_->poller()->rm_fd(poll_handle_);
+        poller_->rm_fd(poll_handle_);
         re_open();
         // add event poll to poller
-        poll_handle_ = loop_->poller()->add_fd(pipe_fd_[0],event_read,this);
+        poll_handle_ = poller_->add_fd(pipe_fd_[0],event_read,this);
     }
 
     // wake for loop
-    loop_->on_wake_up();
+    poller_->own_loop()->on_wake_up();
 }
 
 void wake_up_pipe_t::out_event(){
-    Z_ASSERT("zio:wake_up_pipe has no out event!" == 0);
+    Z_ASSERT_W(0,"zio:wake_up_pipe has no out event!");
 }
 
 void wake_up_pipe_t::re_open(){
@@ -97,7 +98,7 @@ void wake_up_pipe_t::re_open(){
     fd_control::make_close_on_exec(pipe_fd_[1]);
 
     // add to poller
-    poll_handle_ = loop_->poller()->add_fd(pipe_fd_[0],event_read,this);
+    poll_handle_ = poller_->add_fd(pipe_fd_[0],event_read,this);
 }
 
 void wake_up_pipe_t::close(){

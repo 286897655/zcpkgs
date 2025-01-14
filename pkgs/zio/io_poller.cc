@@ -97,7 +97,9 @@ void io_loop_t::init()
     pthread_setname_np(pthread_self(),loop_name_.c_str());
 
     // create poller
-    loop_poller_ = new io_poller_t();
+    loop_poller_ = new io_poller_t(this);
+    // create thread weak up
+    wake_up_ = new wake_up_pipe_t(loop_poller_);
     zlog("zio:created io_loop {}",loop_name_);
     // bind thread loop
     thread_loop = this;
@@ -151,8 +153,15 @@ void io_loop_t::run()
     }
 }
 
+io_poller_t* io_loop_t::poller() const{
+    return loop_poller_;
+}
 
-io_poller_t::io_poller_t():epoll_poller_(epoll_poller::create())
+uint32_t io_loop_t::load(){
+    return loop_poller_->load();
+}
+
+io_poller_t::io_poller_t(io_loop_t* loop):own_loop_(loop),epoll_poller_(epoll_poller::create())
 {   
     
 }
@@ -195,6 +204,10 @@ void io_poller_t::set_out_event(poll_handle_t handle)
 void io_poller_t::reset_out_event(poll_handle_t handle)
 {
     return epoll_poller_->reset_out_event(handle);
+}
+
+io_loop_t* io_poller_t::own_loop(){
+    return own_loop_;
 }
 
 uint32_t io_poller_t::load()
