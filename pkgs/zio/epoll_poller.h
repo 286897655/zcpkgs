@@ -33,11 +33,11 @@
 #ifndef ZIO_EPOLL_POLLER_H_
 #define ZIO_EPOLL_POLLER_H_
 
-#include "zio/io_poller.h"
 #include <atomic>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include "zio/io_loop_ctx.h"
 
 namespace zio{
 

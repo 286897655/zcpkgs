@@ -30,36 +30,9 @@
  * @brief 
  */
 
-#ifndef ZIO_WAKE_UP_PIPE_H_
-#define ZIO_WAKE_UP_PIPE_H_
+#include "zpkg/functions.h"
 
-#include "zio/io_loop_ctx.h"
-
-namespace zio{
-
-// 先用传统pipe实现方式，后续考虑改为 eventfd方式，eventfd方式windows不支持
-class wake_up_pipe_t final: public poll_event_handler{
-public:
-    explicit wake_up_pipe_t(io_poller_t* poller,io_loop_impl* loop_impl);
-    ~wake_up_pipe_t();
-
-    void wake_up();
-protected:
-    virtual void in_event() override;
-    virtual void out_event() override;
-private:
-    void re_open();
-    void close();
-
-private:
-    io_poller_t* poller_;
-    io_loop_impl* loop_impl_;
-    poll_handle_t poll_handle_;
-    // 0 for read ,1 for write
-    io_fd_t pipe_fd_[2];
-};
+namespace zpkg{
 
 
-};//!namespace zio
-
-#endif//!ZIO_WAKE_UP_PIPE_H_
+};//!namespace zpkg

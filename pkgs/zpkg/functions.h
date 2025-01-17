@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -30,11 +30,33 @@
  * @brief 
  */
 
-#include "zio/timer.h"
+#ifndef ZPKG_FUNCTIONS_H_
+#define ZPKG_FUNCTIONS_H_
 
-namespace zio{
-// timer_t::timer_t(io_poller_t* poller,z_time_t msec_interval){
-    
-// }
+#include <functional>
+#include <atomic>
+#include <zpkg/utility.h>
+#include <zpkg/times.h>
 
-};//!namespace zio
+namespace zpkg{
+
+using Func = std::function<void()>;
+
+class TimeAferCall final: public apply_shared<TimeAferCall>{
+public:
+    TimeAferCall(z_time_t after_msec,std::function<bool(void)>&& boolean_cb);
+    ~TimeAferCall() =default;
+
+    z_time_t TimeAfter() const;
+    bool Call() const;
+    void Cancel();
+
+private:
+    z_time_t after_msec_;
+    std::function<bool(void)> boolean_cb_;
+    std::atomic_bool canceled_;
+};
+
+};//!namespace zpkg
+
+#endif//!ZPKG_FUNCTIONS_H_

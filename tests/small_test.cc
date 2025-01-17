@@ -2,8 +2,18 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <memory>
 
 int main(int argc,char** argv){
+    class test{
+
+    };
+    std::weak_ptr<test> weak = std::make_shared<test>();
+    if(auto strong = weak.lock()){
+        std::cout << "create weak has strong" << std::endl;
+    }else{
+        std::cout << "create weak has no strong" << std::endl;
+    }
     // std::string xxx = "#EXT-X-VERSION:3";
     // char* start = nullptr;
     // int version = std::strtol(xxx.c_str()+sizeof("#EXT-X-VERSION:")-1,&start,10);

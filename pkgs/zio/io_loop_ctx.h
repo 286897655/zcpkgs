@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -30,19 +30,49 @@
  * @brief 
  */
 
-#ifndef ZIO_IO_POLLER_H_
-#define ZIO_IO_POLLER_H_
+#ifndef ZIO_IO_LOOP_H_
+#define ZIO_IO_LOOP_H_
 
-#include <string>
 #include <functional>
+#include <string>
 #include <thread>
+#include <atomic>
 #include <zpkg/utility.h>
 #include <zpkg/times.h>
-#include <zio/timer.h>
-#include <vector>
-#include <mutex>
 
 namespace zio{
+
+// impl for io loop
+class io_loop_impl;
+class io_poller_t;
+class io_loop_t{
+public:
+    // 在主线程中先调用一次
+    static io_loop_t* main_loop();
+    static io_loop_t* create_this_thread_loop(const std::string& name="");
+    static io_loop_t* next_loop();
+    static io_loop_t* min_load_loop();
+    static io_loop_t* this_thread_loop();
+    static size_t create_loop_pool(const std::string& name="",size_t count = 0);
+public:
+    void async(std::function<void()>&& callback);
+    void run();
+    bool is_this_thread_loop() const;
+    io_poller_t* poller() const;
+    uint32_t load();
+
+private:
+    explicit io_loop_t(const std::string& loop_name);
+    ~io_loop_t();
+
+    void bind_thread(std::thread* thread);
+private:
+    Z_DISABLE_COPY_MOVE(io_loop_t)
+    io_loop_impl* loop_impl_;
+
+    friend class io_timer_t;
+};
+
 #if defined _WIN32
 // Windows uses a pointer-sized unsigned integer to store the socket fd.
 #if defined _WIN64
@@ -56,44 +86,6 @@ typedef int io_fd_t;
 
 enum{
     invalid_io_fd_t = -1//
-};
-
-class io_poller_t;
-class wake_up_pipe_t;
-class io_loop_t{
-public:
-    using call_back_func = std::function<void()>;
-    // 在主线程中先调用一次
-    static io_loop_t* default_loop();
-    static io_loop_t* next_loop();
-    static io_loop_t* min_load_loop();
-    static io_loop_t* this_thread_loop();
-    static size_t create_loop_pool(const std::string& name="",size_t count = 0);
-    
-public:
-    void async(call_back_func&& callback);
-    void run();
-    bool is_this_thread_loop() const;
-    io_poller_t* poller() const;
-    uint32_t load();
-
-private:
-    explicit io_loop_t(const std::string& loop_name);
-    ~io_loop_t();
-
-    // run in loop thread
-    void init();
-    void on_wake_up();
-private:
-    friend class wake_up_pipe_t;
-    std::string loop_name_;
-    std::thread* loop_thread_;
-    io_poller_t* loop_poller_;
-    wake_up_pipe_t* wake_up_;
-    std::mutex task_mtx_;
-    std::vector<call_back_func> async_tasks_;
-    //std::multimap<uint64_t, timer_info_t> timers_t;
-    Z_DISABLE_COPY_MOVE(io_loop_t)
 };
 
 enum poll_event_type{
@@ -118,26 +110,58 @@ using poll_handle_t = void*;
 class epoll_poller;
 class io_poller_t{
 public:
-    explicit io_poller_t(io_loop_t* loop);
+    io_poller_t();
     ~io_poller_t();
 
-    void poll();
+    void poll(int timeout = -1);
     poll_handle_t add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler);
+    // poll_handle will be delete later,caller do not use poll_handle again
     void rm_fd(poll_handle_t handle);
     void set_in_event(poll_handle_t handle);
     void reset_in_event(poll_handle_t handle);
     void set_out_event(poll_handle_t handle);
     void reset_out_event(poll_handle_t handle);
-    io_loop_t* own_loop();
     uint32_t load();
-
-
 private:
     epoll_poller* epoll_poller_;
-    io_loop_t* own_loop_;
     Z_DISABLE_COPY_MOVE(io_poller_t)
 };
 
-}//!namespace zio
+// 先用std::multi_map实现 后面考虑更改为内核提供的timerfd
+class io_timer_impl;
+class io_timer_t{
+public:
+    class time_after_task{
+    public:
+        time_after_task(z_time_t after_msec,std::function<bool(void)>&& boolean_cb);
+        ~time_after_task() =default;
 
-#endif//!ZIO_IO_POLLER_H_
+        z_time_t time_after() const{
+            return after_msec_;
+        }
+        bool call() const;
+        void cancel();
+
+    private:
+        z_time_t after_msec_;
+        std::function<bool(void)> boolean_cb_;
+        std::atomic_bool canceled_;
+    };
+public:
+    explicit io_timer_t(io_loop_t* loop);
+    ~io_timer_t();
+
+    using boolean_call_back = std::function<bool(void)>;
+    // 返回值false表示不再重复触发，返回值true表示重复触发
+    void reset(boolean_call_back&& cb,z_time_t msec_interval);
+    // 取消定时器
+    void cancel();
+private:
+    Z_DISABLE_COPY_MOVE(io_timer_t)
+    std::weak_ptr<time_after_task> weak_call_;
+    io_loop_impl* loop_impl_;
+};
+
+};//!namespace
+
+#endif//!ZIO_IO_LOOP_H_

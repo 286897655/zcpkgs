@@ -31,17 +31,18 @@
  */
 
 #include "wake_up_pipe.h"
+#include "io_loop_impl.h"
 #include <unistd.h>
 #include <zlog/log.h>
 #include "uv_io_error.h"
 #include "io_utility.h"
 namespace zio{
 
-wake_up_pipe_t::wake_up_pipe_t(io_poller_t* poller)
-    :poller_(poller),poll_handle_(nullptr)
+wake_up_pipe_t::wake_up_pipe_t(io_poller_t* poller,io_loop_impl* loop_impl)
+    :poller_(poller),loop_impl_(loop_impl),poll_handle_(nullptr)
 {
-    pipe_fd_[0] = -1;
-    pipe_fd_[1] = -1;
+    pipe_fd_[0] = invalid_io_fd_t;
+    pipe_fd_[1] = invalid_io_fd_t;
     re_open();
 }
 
@@ -73,15 +74,13 @@ void wake_up_pipe_t::in_event(){
     if(ret == 0 || uv_last_error() != UV_EAGAIN){
         // read eof or non-EAGAIN error,pipe is invalid, reopen it
         zlog_warn("zio:wake up pipe invalid,reopen it");
-        // delete event poll from poller
-        poller_->rm_fd(poll_handle_);
         re_open();
         // add event poll to poller
         poll_handle_ = poller_->add_fd(pipe_fd_[0],event_read,this);
     }
 
     // wake for loop
-    poller_->own_loop()->on_wake_up();
+    loop_impl_->on_wake_up();
 }
 
 void wake_up_pipe_t::out_event(){
@@ -89,6 +88,7 @@ void wake_up_pipe_t::out_event(){
 }
 
 void wake_up_pipe_t::re_open(){
+    close();
     if(::pipe(pipe_fd_) < 0){
         throw std::runtime_error("create posix pipe fail,throw for aborted");
     }
@@ -102,6 +102,10 @@ void wake_up_pipe_t::re_open(){
 }
 
 void wake_up_pipe_t::close(){
+    if(poll_handle_){
+        poller_->rm_fd(poll_handle_);
+        poll_handle_ = nullptr;
+    }
     if(pipe_fd_[0] != invalid_io_fd_t){
         ::close(pipe_fd_[0]);
         pipe_fd_[0] = invalid_io_fd_t;
