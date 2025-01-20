@@ -48,12 +48,14 @@ io_loop_impl::~io_loop_impl(){
     Z_DELETE_P(loop_poller_);
 }
 
-void io_loop_impl::run(){
+int io_loop_impl::run(){
     while(1){
         // get poll timeout time and flush time after task
         int poll_time = execute_time_after_task();
         loop_poller_->poll(poll_time);
     }
+
+    return Z_INT_SUCCESS;
 }
 
 void io_loop_impl::start(){

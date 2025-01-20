@@ -73,11 +73,11 @@ io_loop_t* io_loop_t::create_this_thread_loop(const std::string& name){
 
 // static io_loop_t* next_loop();
 io_loop_t* io_loop_t::next_loop(){
-    return nullptr;
+    return loop_pool[0];
 }
 // static io_loop_t* min_load_loop();
 io_loop_t* io_loop_t::min_load_loop(){
-    return nullptr;
+    return loop_pool[0];
 }
 // static io_loop_t* this_thread_loop();
 io_loop_t* io_loop_t::this_thread_loop(){
@@ -121,7 +121,7 @@ void io_loop_t::async(std::function<void()>&& callback){
     loop_impl_->async(std::move(callback));
 }
 
-void io_loop_t::run(){
+int io_loop_t::run(){
     return loop_impl_->run();
 }
 

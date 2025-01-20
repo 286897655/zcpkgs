@@ -42,20 +42,6 @@ namespace zpkg{
 
 using Func = std::function<void()>;
 
-class TimeAferCall final: public apply_shared<TimeAferCall>{
-public:
-    TimeAferCall(z_time_t after_msec,std::function<bool(void)>&& boolean_cb);
-    ~TimeAferCall() =default;
-
-    z_time_t TimeAfter() const;
-    bool Call() const;
-    void Cancel();
-
-private:
-    z_time_t after_msec_;
-    std::function<bool(void)> boolean_cb_;
-    std::atomic_bool canceled_;
-};
 
 };//!namespace zpkg
 

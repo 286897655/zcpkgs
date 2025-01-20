@@ -50,6 +50,10 @@ void zpkg_assert_w(const char* what,const char* asssertion,const char* func,cons
     oss << "assert for:(" << what << "), failed:(" << asssertion << "), function " << func << ", file " << file << ", line " << line << ".";
     throw std::runtime_error(oss.str());
 }
+
+void z_assert(const char* assertion,const char* func,const char* file,int line){
+    return zpkg_assert(assertion,func,file,line);
+}
 #ifdef __cplusplus
     }
 #endif

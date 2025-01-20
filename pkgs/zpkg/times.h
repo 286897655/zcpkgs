@@ -65,12 +65,6 @@ public:
     static std::string fmt_now_s(const char* fmt = "%Y-%m-%d %H:%M:%S");
 };
 
-
-class DateTime{
-
-};
-
-
 };//!namespace zpkg
 
 

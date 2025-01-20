@@ -56,7 +56,7 @@ public:
     static size_t create_loop_pool(const std::string& name="",size_t count = 0);
 public:
     void async(std::function<void()>&& callback);
-    void run();
+    int run();
     bool is_this_thread_loop() const;
     io_poller_t* poller() const;
     uint32_t load();
@@ -129,6 +129,7 @@ private:
 
 // 先用std::multi_map实现 后面考虑更改为内核提供的timerfd
 class io_timer_impl;
+// thread safe timer,should be create on specific loop
 class io_timer_t{
 public:
     class time_after_task{

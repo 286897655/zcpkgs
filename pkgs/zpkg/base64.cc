@@ -68,7 +68,7 @@
    Rene Nyffenegger rene.nyffenegger@adp-gmbh.ch
 */
 
-#include "zpkg/base64.h"
+#include "base64.h"
 
 namespace base64{
 

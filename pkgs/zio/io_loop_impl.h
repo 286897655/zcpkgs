@@ -49,7 +49,7 @@ public:
     explicit io_loop_impl(const std::string& threadname);
     ~io_loop_impl();
 
-    void run();
+    int run();
     void start();
     void move_to_thread(std::thread* thread){
         run_thread_ = thread;
