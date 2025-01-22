@@ -30,20 +30,16 @@
  * @brief 
  */
 
-#ifndef ZIO_UDP_H_
-#define ZIO_UDP_H_
+#ifndef ZIO_IO_CHANNEL_H_
+#define ZIO_IO_CHANNEL_H_
 
 namespace zio{
-class udp_client{
+
+// 表示一个可用于socket读写的连接
+class io_channel_t{
 
 };
-
-class udp_server{
-
-};
-
-
 
 };//!namespace zio
 
-#endif//!ZIO_UDP_H_
+#endif//!ZIO_IO_CHANNEL_H_

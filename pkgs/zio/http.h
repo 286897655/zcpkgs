@@ -30,20 +30,12 @@
  * @brief 
  */
 
-#ifndef ZIO_UDP_H_
-#define ZIO_UDP_H_
+#ifndef ZIO_HTTP_H_
+#define ZIO_HTTP_H_
 
 namespace zio{
-class udp_client{
-
-};
-
-class udp_server{
 
 };
 
 
-
-};//!namespace zio
-
-#endif//!ZIO_UDP_H_
+#endif//!ZIO_HTTP_H_

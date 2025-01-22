@@ -36,6 +36,14 @@
 
 namespace zio{
 
+enum class socket_family_t{
+    
+};
+
+enum class socket_type_t{
+
+};
+
 class fd_control{
 public:
     static void make_non_blocking(io_fd_t fd);

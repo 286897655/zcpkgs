@@ -33,13 +33,79 @@
 #ifndef ZIO_IO_SOCKET_H_
 #define ZIO_IO_SOCKET_H_
 
+#include <zio/io_loop_ctx.h>
+
 namespace zio{
 
-class io_poller_t;
-class io_socket_t{
+class i_address{
 public:
-    explicit io_socket_t(io_poller_t* poller);
+    virtual ~i_address();
+    virtual std::string get_local_ip() = 0;
+    virtual int get_local_port() = 0;
+    virtual std::string get_peer_ip() = 0;
+    virtual int get_peer_port() = 0;
+};
 
+class ip_addr_v4{
+
+};
+
+class ip_addr_v6{
+
+};
+
+class ip_addr{
+private:
+    typedef union{
+        ip_addr_v4 v4_addr_;
+        ip_addr_v6 v6_addr_;
+    }ip_addr_v46;
+    ip_addr_v46 v46_addr_;
+
+};
+
+
+
+
+// 该对象创建释放都很频繁而且容易异步操作，因此使用智能指针管理
+class io_socket_t : public i_address,public poll_event_handler,public zpkg::apply_shared<io_socket_t>{
+private:
+    io_fd_t socket_fd_;
+    io_loop_t* poller_loop_;
+public:
+    enum class family{
+        IPv4 ,// AF_INET
+        IPv6 ,// AF_INET6
+        Unix // AF_UNIX
+    };
+    enum class type{
+        Invalid          = -1,// INVALID
+        Unknown          = 0, // UNKNOWN
+        Stream           = 1, // TCP
+        Datagrams        = 2, // UDP
+        Raw              = 3
+    };
+public:
+    static io_socket_t* create(io_loop_t* loop,io_fd_t fd);
+    static io_socket_t* create(io_loop_t* loop,family _family,type _type);
+
+    explicit io_socket_t(io_loop_t* loop,family _family,type _type);
+    virtual ~io_socket_t();
+
+    bool bind(const std::string& ip,int port);
+    bool listen();
+    bool connect(const std::string& ip,int port);
+
+
+
+    // i_address override
+    virtual std::string get_local_ip() override;
+    virtual int get_local_port() override;
+    virtual std::string get_peer_ip() override;
+    virtual int get_peer_port() override;
+private:
+    io_socket_t(io_loop_t* loop,io_fd_t fd);
+    Z_DISABLE_COPY_MOVE(io_socket_t);
 };
 
 };//!namespace zio

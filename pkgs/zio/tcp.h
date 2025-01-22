@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -33,5 +33,19 @@
 #ifndef ZIO_TCP_H_
 #define ZIO_TCP_H_
 
+#include <zio/io_socket.h>
+
+namespace zio{
+
+class tcp_client{
+
+};
+
+class tcp_server{
+
+};
+
+
+};//!namespace zio
 
 #endif//!ZIO_TCP_H_
