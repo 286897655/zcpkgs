@@ -3,17 +3,18 @@
 #include <iostream>
 #include <map>
 #include <memory>
-
+#include <assert.h>
+#include <zpkg/times.h>
+#include <chrono>
 int main(int argc,char** argv){
-    class test{
-
-    };
-    std::weak_ptr<test> weak = std::make_shared<test>();
-    if(auto strong = weak.lock()){
-        std::cout << "create weak has strong" << std::endl;
-    }else{
-        std::cout << "create weak has no strong" << std::endl;
-    }
+    std::string m3u8_url = "https://obs-nmhhht2.cucloud.cn/shipinyun/GSPb4ohbi65Wm-bgAcbqe7Mu_20250306175843.m3u8?vcodec=avc";
+    size_t pos_m3u8 = m3u8_url.rfind(".m3u8");
+    size_t pos_slash = m3u8_url.rfind("/");
+    std::string stream_time = m3u8_url.substr(pos_slash + 1, pos_m3u8 - pos_slash);
+    std::cout << "stream_time:" << stream_time << std::endl;
+    std::cout << "pos_m3u8:" << pos_m3u8 << std::endl;
+    std::cout << "pos_salsh:" << pos_slash << std::endl;
+    return 0;
     // std::string xxx = "#EXT-X-VERSION:3";
     // char* start = nullptr;
     // int version = std::strtol(xxx.c_str()+sizeof("#EXT-X-VERSION:")-1,&start,10);

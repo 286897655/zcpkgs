@@ -101,7 +101,7 @@ struct apply_shared{
 template<typename Fn>
 class defer{
 public:
-    defer(Fn&& fn):fn_{std::forward<Fn>(fn)}{
+    explicit defer(Fn&& fn):fn_{std::forward<Fn>(fn)}{
 
     };
     ~defer(){

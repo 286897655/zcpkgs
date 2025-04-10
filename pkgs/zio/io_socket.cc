@@ -121,6 +121,9 @@ io_socket_t::~io_socket_t(){
 }
 
 bool io_socket_t::bind(const std::string& ip,int port){
-
+    Z_ASSERT(socket_fd_ != invalid_io_fd_t);
+    
+    //::bind(socket_fd_,)
+    throw std::runtime_error("unimplementation");
 }
 };//!namespace zio

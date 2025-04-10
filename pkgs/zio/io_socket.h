@@ -65,8 +65,6 @@ private:
 };
 
 
-
-
 // 该对象创建释放都很频繁而且容易异步操作，因此使用智能指针管理
 class io_socket_t : public i_address,public poll_event_handler,public zpkg::apply_shared<io_socket_t>{
 private:
@@ -103,9 +101,26 @@ public:
     virtual int get_local_port() override;
     virtual std::string get_peer_ip() override;
     virtual int get_peer_port() override;
+
+    // poll_event_handler
+    virtual void in_event() override;
+    virtual void out_event() override;
 private:
     io_socket_t(io_loop_t* loop,io_fd_t fd);
     Z_DISABLE_COPY_MOVE(io_socket_t);
+};
+
+/**
+ * represent a conntion
+*/
+class io_conn_t : public zpkg::apply_shared<io_conn_t>{
+public:
+    static io_conn_t::shared create(io_loop_t* loop,io_fd_t fd);
+public:
+    
+private:
+    Z_DISABLE_COPY_MOVE(io_conn_t);
+    io_poller_t* poller_;
 };
 
 };//!namespace zio

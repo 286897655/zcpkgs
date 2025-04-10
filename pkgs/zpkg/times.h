@@ -51,18 +51,46 @@ using z_time_t = uint64_t;
 namespace zpkg{
 
 enum{
-    USEC_PER_MSEC = 1000LL,// 一毫秒1000微妙
-    USEC_PER_SEC  = 1000000LL,// 一秒1000000微妙
-    NSEC_PER_SEC  = 1000000000LL,// 一秒1000000000纳秒
-    NSEC_PER_USEC = 1000LL // 一微秒1000纳秒
+    NSEC_PER_USEC = 1000LL,// 1微妙1000纳秒
+    USEC_PER_MSEC = 1000LL,// 1毫秒1000微妙
+    MSEC_PER_SEC  = 1000LL,// 一秒1000毫秒
+    USEC_PER_SEC  = USEC_PER_MSEC * MSEC_PER_SEC,// 1秒1000000微妙
+    NSEC_PER_SEC  = NSEC_PER_USEC * USEC_PER_SEC,// 1秒1000000000纳秒
+    NSEC_PER_MSEC = NSEC_PER_USEC * USEC_PER_MSEC, // 1毫秒1000000纳秒
 };
 
 class times{
 public:
-    static z_time_t now_ns();
+    static z_time_t steady_clock_ns();
+    static z_time_t steady_clock_us();
+    static z_time_t steady_clock_ms();
+
+    static z_time_t system_clock_us();
+    static z_time_t system_clock_ms();
+
     static z_time_t now_us();
     static z_time_t now_ms();
     static std::string fmt_now_s(const char* fmt = "%Y-%m-%d %H:%M:%S");
+};
+
+class ticker_ms{
+public:
+    ticker_ms(){
+        created_ = begin_ = times::steady_clock_ms();
+    }
+    z_time_t elapse() const{
+        return times::steady_clock_ms() - begin_;
+    }
+    z_time_t created() const{
+        return times::steady_clock_ms() - created_;
+    }
+    void reset_elapse_tick(){
+        begin_ = times::steady_clock_ms();
+    }
+
+private:
+    z_time_t created_;
+    z_time_t begin_;
 };
 
 };//!namespace zpkg

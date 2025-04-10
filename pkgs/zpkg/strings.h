@@ -204,7 +204,7 @@ static constexpr size_t kDefaultStackBuffer = 1024;//1024 in stack,other will be
 template<typename ... Args>
 std::string fmt_string(const std::string& fmt, Args ... args) {
     // snprintf will write \0 at end.the return no counting \0
-    int size_buf = ::snprintf(nullptr,0,fmt.c_str(),args ...) + 1;
+    size_t size_buf = ::snprintf(nullptr,0,fmt.c_str(),args ...) + 1;
     if(size_buf <= kDefaultStackBuffer){
         char buffer[kDefaultStackBuffer];
         size_buf = ::snprintf(buffer,sizeof(buffer),fmt.c_str(),args ...);

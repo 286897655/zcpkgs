@@ -55,7 +55,7 @@ io_loop_t* io_loop_t::main_loop(){
     }
 
     std::call_once(once_main_loop,[](){
-        create_this_thread_loop("main loop");
+        create_this_thread_loop();
     });
 
     return main_loop();
@@ -112,13 +112,17 @@ void io_loop_t::bind_thread(std::thread* thread){
     loop_impl_->move_to_thread(thread);
 }
 
-void io_loop_t::async(std::function<void()>&& callback){
+void io_loop_t::async(Func&& callback){
     if(is_this_thread_loop()){
         callback();
         return;
     }
 
     loop_impl_->async(std::move(callback));
+}
+
+void io_loop_t::sync(Func&& func){
+    
 }
 
 int io_loop_t::run(){

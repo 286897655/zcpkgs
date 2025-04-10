@@ -30,33 +30,63 @@
  * @brief 
  */
 
-#ifndef ZIO_TCP_H_
-#define ZIO_TCP_H_
+#ifndef ZAV_OBJECT_AV_PTS_DTS_H_
+#define ZAV_OBJECT_AV_PTS_DTS_H_
 
-#include <zio/io_socket.h>
+#include <set>
+#include <stdint.h>
+#include <stddef.h>
 
-namespace zio{
+namespace zav{
 
-class tcp_client : public i_address{
+enum{
+    AV_INVALID_PTS = 0x8000000000000000
+};
+
+class DtsGenWithPts{
 public:
-    explicit tcp_client(io_loop_t* loop);
-    virtual ~tcp_client();
+    DtsGenWithPts();
+    ~DtsGenWithPts();
 
-    
+    bool GenDts(uint64_t pts,uint64_t& dts);
 
-    virtual std::string get_local_ip() override;
-    virtual int get_local_port() override;
-    virtual std::string get_peer_ip() override;
-    virtual int get_peer_port() override;
 private:
-    io_socket_t::shared socket_;
+    bool genDts_l(uint64_t pts, uint64_t &dts);
+
+private:
+    uint64_t _dts_pts_offset = 0;
+    uint64_t _last_dts = 0;
+    uint64_t _last_pts = 0;
+    uint64_t _last_max_pts = 0;
+    size_t _frames_since_last_max_pts = 0;
+    size_t _sorter_max_size = 0;
+    size_t _count_sorter_max_size = 0;
+    std::set<uint64_t> _pts_sorter;
 };
 
-class tcp_server{
+/**
+ * Pts缓存,用于在比如RTSP场景下 拿到的只有PTS
+ * 无B帧的情况下DTS=PTS
+ * 有B帧的情况下对PTS缓存B帧+1个PTS
+*/
+class PtsCache{
+public:
+    PtsCache();
+    ~PtsCache();
 
+    uint64_t GenerateDts(uint64_t pts);
+
+private:
+    void reset();
+private:
+    int delay_;//计算得到的B帧个数
+    uint64_t last_pts_;//缓存上一个pts
+    uint64_t count_max_pts_;//当前计算的最大pts
+    std::set<uint64_t> pts_cache_;
 };
 
 
-};//!namespace zio
+};//!namespace zav
 
-#endif//!ZIO_TCP_H_
+
+#endif//!ZAV_OBJECT_AV_PTS_DTS_H_

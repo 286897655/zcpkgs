@@ -41,7 +41,6 @@
 
 namespace zio{
 
-using Func = std::function<void()>;
 using SharedTimerTask = std::shared_ptr<io_timer_t::time_after_task>;
 class wake_up_pipe_t;
 class io_loop_impl{
@@ -57,7 +56,7 @@ public:
     io_poller_t* poller() const{
         return loop_poller_;
     }
-    void async(Func&& func);
+    void async(executor::Func&& func);
     // run in loop thread
     void on_wake_up();
     void add_time_task(const SharedTimerTask& task);
@@ -68,7 +67,7 @@ private:
     io_poller_t* loop_poller_ = nullptr;
     wake_up_pipe_t* wake_up_ = nullptr;
     std::mutex task_mtx_;
-    std::vector<Func> async_tasks_;
+    std::vector<executor::Func> async_tasks_;
     std::multimap<z_time_t, SharedTimerTask> time_after_tasks_;
 };
 

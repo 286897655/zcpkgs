@@ -33,7 +33,7 @@
 #ifndef ZIO_IO_LOOP_H_
 #define ZIO_IO_LOOP_H_
 
-#include <functional>
+#include <zio/execution.h>
 #include <string>
 #include <thread>
 #include <atomic>
@@ -45,7 +45,7 @@ namespace zio{
 // impl for io loop
 class io_loop_impl;
 class io_poller_t;
-class io_loop_t{
+class io_loop_t : public executor{
 public:
     // 在主线程中先调用一次
     static io_loop_t* main_loop();
@@ -55,15 +55,18 @@ public:
     static io_loop_t* this_thread_loop();
     static size_t create_loop_pool(const std::string& name="",size_t count = 0);
 public:
-    void async(std::function<void()>&& callback);
     int run();
     bool is_this_thread_loop() const;
     io_poller_t* poller() const;
     uint32_t load();
 
+public:
+    virtual void async(Func&& func) override;
+    virtual void sync(Func&& func) override;
+
 private:
     explicit io_loop_t(const std::string& loop_name);
-    ~io_loop_t();
+    virtual ~io_loop_t();
 
     void bind_thread(std::thread* thread);
 private:
@@ -128,6 +131,7 @@ private:
 };
 
 // 先用std::multi_map实现 后面考虑更改为内核提供的timerfd
+// 自己实现的这个timer时间判断获取的时候需要更改为使用ns时间 因为获取ns时间是用monotici clock获取的
 class io_timer_impl;
 // thread safe timer,should be create on specific loop
 class io_timer_t{

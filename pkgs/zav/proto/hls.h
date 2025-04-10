@@ -36,6 +36,7 @@
 #include <zpkg/utility.h>
 #include <zav/av.h>
 #include <map>
+#include <unordered_map>
 
 namespace zav{
 
@@ -82,6 +83,20 @@ public:
     std::string format();
 };
 
+class m3u8_merger{
+public:
+    // merge the map m3u8 url with its content,if with no time set,it will merge all ts
+    // to a single m3u8 or else merge sutiable time ts begin_time,start_time,end_time都是秒单位
+    // begin_time start_time和end_time都为0 就全部合并
+    // begin_time 是 0 start_time 和 end_time有值 那就只能计算开始结束的相对值
+    // begin_time 不为0 则知道m3u8开始的时间 start_time和end_time提供的值 是和begin_time一样的绝对时间
+    static std::string merge_m3u8_content(const std::map<std::string,std::string>& contents,
+                        uint64_t begin_time=0,uint64_t start_time=0,uint64_t end_time=0);
+};
+
+namespace hls{
+    static constexpr const char kMergedM3U8Prefix[] = "vod-m3u8://";
+};
 
 };//!namespace zav
 

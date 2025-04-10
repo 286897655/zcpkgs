@@ -60,7 +60,9 @@ int io_loop_impl::run(){
 
 void io_loop_impl::start(){
     // set thread name
-    pthread_setname_np(pthread_self(),loop_thread_name_.c_str());
+    if(!loop_thread_name_.empty()){
+        pthread_setname_np(pthread_self(),loop_thread_name_.c_str());
+    }
     // create poller
     loop_poller_ = new io_poller_t();
     // create thread weak up
@@ -68,7 +70,7 @@ void io_loop_impl::start(){
     zlog("zio:created io_loop {}",loop_thread_name_);
 }
 
-void io_loop_impl::async(Func&& func){
+void io_loop_impl::async(executor::Func&& func){
     // not in this thread insert to tasklist
     {
         std::lock_guard<std::mutex> lock(task_mtx_);
@@ -83,7 +85,7 @@ void io_loop_impl::on_wake_up(){
     //Z_ASSERT(is_this_thread_loop());
 
     // flush task's
-    std::vector<Func> swap_task;
+    std::vector<executor::Func> swap_task;
     {
         std::lock_guard<std::mutex> lock(task_mtx_);
         swap_task.swap(async_tasks_);

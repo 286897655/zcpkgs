@@ -34,30 +34,68 @@
 #include <sys/time.h>
 #include <time.h>
 #include <ctime>
+#include <chrono>
+#include "zcpkgs_common.h"
 
 namespace zpkg{
 
-
-z_time_t times::now_ns(){
+/// Linux:monotonic_clock_gettime use clock_gettime(CLOCK_MONOTONIC) 
+/// has ns precision,monotonic clock_gettime return tick from system start
+/// Others:use chrono:steady_clock
+static z_time_t monotonic_clock_gettime(){
+#ifdef Z_SYS_LINUX
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC,&ts);
     return ts.tv_sec * NSEC_PER_SEC + ts.tv_nsec;
+#else
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+#endif
+}
+
+z_time_t times::steady_clock_ns(){
+    return monotonic_clock_gettime();
+}
+
+z_time_t times::steady_clock_us(){
+    return monotonic_clock_gettime() / NSEC_PER_USEC;
+}
+
+z_time_t times::steady_clock_ms(){
+    return monotonic_clock_gettime() / NSEC_PER_MSEC;
+}
+
+/// Linux:gettimeofday_us use gettimeofday same as clock_gettime(CLOCK_REALTIME) 
+/// has us precision,gettimeofday return time from UTC 1970-01-01 000000
+/// Others:use chrono::system_clock
+
+static z_time_t gettimeofday_us(){
+#ifdef Z_SYS_LINUX
+    timeval now;
+    gettimeofday(&now, NULL);
+    return now.tv_sec * USEC_PER_SEC + now.tv_usec;
+#else
+    std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+#endif
+}
+
+z_time_t times::system_clock_us(){
+    return gettimeofday_us();
+}
+
+z_time_t times::system_clock_ms(){
+    return gettimeofday_us() / USEC_PER_MSEC;
 }
 
 z_time_t times::now_us(){
-    //  Use POSIX gettimeofday function to get precise time.
-    struct timeval tv;
-    gettimeofday (&tv, NULL);
-    return tv.tv_sec * USEC_PER_SEC + tv.tv_usec;
+    return gettimeofday_us();
 }
 
 z_time_t times::now_ms(){
-    return now_us() / USEC_PER_MSEC;
+    return gettimeofday_us() / USEC_PER_MSEC;
 }
 
 // DateTime
-std::string times::fmt_now_s(const char* fmt)
-{
+std::string times::fmt_now_s(const char* fmt){
     time_t now = ::time(NULL);
     std::tm tm_snapshot;
 #if defined(Z_SYS_WINDOWS)

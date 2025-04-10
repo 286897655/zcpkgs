@@ -30,33 +30,9 @@
  * @brief 
  */
 
-#ifndef ZIO_TCP_H_
-#define ZIO_TCP_H_
-
-#include <zio/io_socket.h>
+#include "tcp.h"
 
 namespace zio{
 
-class tcp_client : public i_address{
-public:
-    explicit tcp_client(io_loop_t* loop);
-    virtual ~tcp_client();
-
-    
-
-    virtual std::string get_local_ip() override;
-    virtual int get_local_port() override;
-    virtual std::string get_peer_ip() override;
-    virtual int get_peer_port() override;
-private:
-    io_socket_t::shared socket_;
-};
-
-class tcp_server{
-
-};
-
 
 };//!namespace zio
-
-#endif//!ZIO_TCP_H_

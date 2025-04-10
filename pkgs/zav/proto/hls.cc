@@ -153,15 +153,57 @@ std::string m3u8_parser::format(){
     oss << "m3u8_url:" << m3u8_url << zpkg::kstrings::kLF
         << "is_m3u8:" << is_m3u8 << zpkg::kstrings::kLF
         << "allow_cache:"<< allow_cache << zpkg::kstrings::kLF
-        << "is_live:"<<is_live << zpkg::kstrings::kLF
-        << "embedded_m3u8:"<<embedded_m3u8 << zpkg::kstrings::kLF
+        << "is_live:"<< is_live << zpkg::kstrings::kLF
+        << "embedded_m3u8:"<< embedded_m3u8 << zpkg::kstrings::kLF
         << "version:" << version << zpkg::kstrings::kLF
-        << "target_duration:"<<target_duration << zpkg::kstrings::kLF
-        << "total_duration:"<<total_duration << zpkg::kstrings::kLF
+        << "target_duration:"<< target_duration << zpkg::kstrings::kLF
+        << "total_duration:"<< total_duration << zpkg::kstrings::kLF
         << "media_sequence:" << media_sequence << zpkg::kstrings::kLF
         << std::endl;
     
     return oss.str();
 }
+
+std::string m3u8_merger::merge_m3u8_content(const std::map<std::string,std::string>& contents,
+                            uint64_t begin_time,uint64_t start_time,uint64_t end_time){
+    if(contents.empty())
+        return zpkg::kstrings::kEmpty;
+    
+    std::string content = contents.begin()->second;
+    std::ostringstream oss;
+    oss << hls::kMergedM3U8Prefix << content;
+    return oss.str();
+
+    // std::ostringstream oss;
+    // oss << hls::kMergedM3U8Prefix << kM3U8_START << zpkg::kstrings::kLF
+    //     << kM3U8_VERSION << ":" << 3 << zpkg::kstrings::kLF;
+    // std::map<std::string,m3u8_parser::unique> parsed;
+    // float max_target_duration = 0.0f;
+    // int last_media_sequence = -1;
+    // // begin_time == 0 start_time == 0 end_time == 0
+    // // 全部合并
+    // // begin_time == 0 start_time != 0 end_time != 0
+    // // start_time和end_time都是相对值秒来合并
+    // // begin_time != 0 start_time != 0 end_time != 0
+    // // 知道m3u8的开始时间 都是绝对值的秒
+    // for(auto it = contents.begin(); it != contents.end(); it++){
+    //     m3u8_parser::unique parser = std::make_unique<m3u8_parser>(it->first);
+    //     if(!parser->parse(it->second)){
+    //         // parse fail
+    //         zlog("cuc_hls:parse m3u8 {} fail",it->first);
+    //         // return empty with merge fail
+    //         return zpkg::kstrings::kEmpty; 
+    //     }
+    //     max_target_duration = std::max(max_target_duration,parser->target_duration);
+    // }
+
+    // if(contents.size() == 1){
+    //     // 只有一个的话 直接返回首个的内容
+    //     return it->second;
+    // }
+    // // TODO zhaoj 都先只支持 只有一个m3u8 并且从头开始播放
+    // return it->second;
+}
+
 
 };//!namespace zav

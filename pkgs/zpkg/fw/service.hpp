@@ -42,5 +42,10 @@ class IService{
         virtual void Run() = 0;
 };
 
+template<typename Subject>
+class Observer{
+public:
+    virtual void Update(Subject& sub) = 0;
+};
 }//!namespace zpkg
 #endif//!ZPKG_FW_SERVICE_HPP_

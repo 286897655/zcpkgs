@@ -1,0 +1,19 @@
+Checks: '
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  portability-*,
+  modernize-*,
+  cppcoreguidelines-*,
+  google-*,
+  readability-*
+  '
+# "-" ahead of string means give up that check
+
+HeaderFilterRegex: 'pkgs/.*|capi/.*'
+
+UseColor: true
+
+WarningsAsErrors: '*'
+
+
