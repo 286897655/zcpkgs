@@ -23,3 +23,5 @@ ET模式下accept存在的问题。考虑这种情况：多个连接同时到达
 
 
 5、实现小目标为支持异步http的client和server
+
+6、ios使用的gcd做事件分发

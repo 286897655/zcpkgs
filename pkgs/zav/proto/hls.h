@@ -90,12 +90,9 @@ public:
     // begin_time start_time和end_time都为0 就全部合并
     // begin_time 是 0 start_time 和 end_time有值 那就只能计算开始结束的相对值
     // begin_time 不为0 则知道m3u8开始的时间 start_time和end_time提供的值 是和begin_time一样的绝对时间
+    // merged ts has url
     static std::string merge_m3u8_content(const std::map<std::string,std::string>& contents,
                         uint64_t begin_time=0,uint64_t start_time=0,uint64_t end_time=0);
-};
-
-namespace hls{
-    static constexpr const char kMergedM3U8Prefix[] = "vod-m3u8://";
 };
 
 };//!namespace zav

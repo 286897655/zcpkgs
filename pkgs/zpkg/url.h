@@ -34,6 +34,7 @@
 #define ZPKG_URL_H_
 
 #include <zpkg/error.h>
+#include <string>
 
 namespace zpkg{
 

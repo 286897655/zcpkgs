@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -32,8 +32,6 @@
 
 #ifndef ZPKG_ERROR_H_
 #define ZPKG_ERROR_H_
-
-#include <string>
 
 enum zerror_code_t{
     kOK = 0,
