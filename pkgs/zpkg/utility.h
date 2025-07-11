@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -114,6 +114,24 @@ template<typename Fn>
 inline std::unique_ptr<defer<Fn>> at_defer(Fn&& fn){
     return std::make_unique<defer<Fn>>(std::forward<Fn>(fn));
 }
+
+
+/**
+ * class that makes derived classes not copyable and not moveable. Like boost::noncopyable
+ * without boost.
+ */
+class nomovecopy {
+protected:
+  nomovecopy() = default;
+
+  // not-moveable.
+  nomovecopy(nomovecopy&&) noexcept = delete;
+  nomovecopy& operator=(nomovecopy&&) noexcept = delete;
+
+  // not-copyable.
+  nomovecopy(const nomovecopy&) = delete;
+  nomovecopy& operator=(const nomovecopy&) = delete;
+};
 
 };//!namespace zpkg
 

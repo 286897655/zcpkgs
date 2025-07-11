@@ -1,5 +1,5 @@
 /** 
- * @copyright Copyright © 2020-2024 code by zhaoj
+ * @copyright Copyright © 2020-2025 code by zhaoj
  * 
  * LICENSE
  * 
@@ -78,9 +78,25 @@ T roundUp_align(T round,T align){
     auto maxAl = align - 1;
     T realSize;
     if (!check_add<T>(&realSize, round, maxAl)) {
-        assert(0);//abort
+        Z_ASSERT(0);//abort
     }
     return realSize & ~maxAl;
+};
+
+/**
+ * Utilities for finding primes.
+ */
+class primes {
+public:
+  /**
+   * Determines whether x is prime.
+   */
+  static bool is_prime(uint32_t x);
+
+  /**
+   * Finds the next prime number larger than x.
+   */
+  static uint32_t next_prime_over(uint32_t x);
 };
 
 }//!namespace zpkg
