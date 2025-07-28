@@ -50,7 +50,7 @@ enum zerror_code_t{
     kFail = 0xE005
 };
 
-
+using ecode = zerror_code_t;
 
 
 

@@ -36,12 +36,12 @@
 #include <zpkg/utility.h>
 #include <zav/av.h>
 #include <map>
-#include <unordered_map>
+#include <list>
 
 namespace zav{
 
 struct ts_segment : public zpkg::apply_unique<ts_segment>{
-    // ts duration #EXTINF:10.00
+    // ts duration #EXTINF:10.00 实际片段时长
     float duration = 0.0f;
     // Embedded m3u8 program
     int program_id = 0;;
@@ -65,8 +65,9 @@ public:
     bool embedded_m3u8;
     // #EXT-X-VERSION
     int version;
-    // #EXT-X-TARGETDURATION
+    // #EXT-X-TARGETDURATION 最大片段时长
     float target_duration;
+    float max_duration;//实际最大片段时长
     // duration total
     float total_duration;
     // #EXT-X-MEDIA-SEQUENCE
@@ -80,19 +81,21 @@ public:
 
     bool parse(const std::string& m3u8_content);
 
+    /**
+     * 获取指定时间段内的ts列表,未指定时间则表示全部获取(默认参数)
+     * 时间为相对时间 单位秒
+    */
+    std::list<ts_segment> timeget_ts(int32_t relative_start_sec = -1,int32_t relative_end_sec = -1);
+
     std::string format();
 };
 
 class m3u8_merger{
 public:
-    // merge the map m3u8 url with its content,if with no time set,it will merge all ts
-    // to a single m3u8 or else merge sutiable time ts begin_time,start_time,end_time都是秒单位
-    // begin_time start_time和end_time都为0 就全部合并
-    // begin_time 是 0 start_time 和 end_time有值 那就只能计算开始结束的相对值
-    // begin_time 不为0 则知道m3u8开始的时间 start_time和end_time提供的值 是和begin_time一样的绝对时间
+    // merge the vector m3u8 url with its content,it will merge all ts
+    // to a single m3u8
     // merged ts has url
-    static std::string merge_m3u8_content(const std::map<std::string,std::string>& contents,
-                        uint64_t begin_time=0,uint64_t start_time=0,uint64_t end_time=0);
+    static std::string merge_m3u8_content(const std::vector<std::pair<std::string,std::string>>& url_contents);
 };
 
 };//!namespace zav
