@@ -1,1 +1,2 @@
 add_subdirectory(socketproxy)
+add_subdirectory(avnetbench)

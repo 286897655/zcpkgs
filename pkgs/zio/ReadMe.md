@@ -25,3 +25,5 @@ ET模式下accept存在的问题。考虑这种情况：多个连接同时到达
 5、实现小目标为支持异步http的client和server
 
 6、ios使用的gcd做事件分发
+
+7、实现reactor和worker结合(一个线程的)的模式还是reactor和worker分离的模式？
