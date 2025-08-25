@@ -46,13 +46,15 @@
 #include <zpkg/skutil.h>
 #include "avnet.h"
 
+std::unique_ptr<asio::io_context> main_io_ctx;
+
 void asio_server(const net_scene& scene,const net_thread_set* t_set,int listen){
     zlog("asioavnet run in server mode for {} scene in {} threads",kScent[scene],t_set->threads);
     zlog("asioavnet server listen on {}",listen);
 
     // main io context
-    asio::io_context main_iocontext;
-    main_iocontext.run();
+    main_io_ctx = std::make_unique<asio::io_context>();
+    main_io_ctx->run();
 }
 
 
@@ -63,8 +65,8 @@ void asio_client(const net_scene& scene,const net_thread_set* t_set,const std::s
     
 
     // main io context
-    asio::io_context main_iocontext;
-    main_iocontext.run();
+    main_io_ctx = std::make_unique<asio::io_context>();
+    main_io_ctx->run();
 }
 
 int main(int argc,char** argv){
@@ -114,9 +116,9 @@ int main(int argc,char** argv){
         // client connect address
         std::string address = option_conn->value();
         auto var = zpkg::socket::parse_ip_colon_port(address);
-        asio_client(scene,threads,var.first,var.second);
+        asio_client(scene,&thread_set,var.first,var.second);
     }else{// run server
-        asio_server(scene,threads,server_listen);
+        asio_server(scene,&thread_set,server_listen);
     }
 };
 

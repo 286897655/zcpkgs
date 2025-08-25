@@ -53,6 +53,7 @@ uint32_t crc32_ieee(const uint8_t* data,size_t size);
 // 不使用输入翻转(Refin) 输出翻转(Refout)
 uint32_t crc32_mpeg2(const uint8_t* data,size_t size);
 
+/// "123456789"--->0xCBF43926 可用于结果校验
 inline uint32_t crc32(const uint8_t* data,size_t size){
     return crc32_ieee(data,size);
 }

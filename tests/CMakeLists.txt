@@ -27,9 +27,6 @@ target_link_libraries(bench zpkg pthread)
 add_executable(bench_h26x_find bench_h26x_find.cpp)
 target_link_libraries(bench_h26x_find zav zpkg pthread)
 
-add_executable(test_find_nalu test_find_nalu.cpp)
-target_link_libraries(test_find_nalu zav zpkg pthread)
-
 add_executable(fw fw.cpp)
 target_link_libraries(fw zpkg pthread)
 

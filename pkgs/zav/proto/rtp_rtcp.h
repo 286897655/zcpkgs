@@ -1,0 +1,72 @@
+/** 
+ * @copyright Copyright © 2020-2025 zhaoj
+ * 
+ * LICENSE
+ *
+ * MIT License
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ */
+
+/**
+ * @author zhaoj 286897655@qq.com
+ * @brief 
+ */
+
+#ifndef ZAV_PROTO_RTP_RTCP_H_
+#define ZAV_PROTO_RTP_RTCP_H_
+
+#include <string>
+
+namespace zav{
+/*
+*  0                   1                   2                   3
+*  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+* +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+* |V=2|P|X|  CC   |M|     PT      |       sequence number         |
+* +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+* |                           timestamp                           |
+* +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+* |           synchronization source (SSRC) identifier            |
+* +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+* |            contributing source (CSRC) identifiers             |
+* |                             ....                              |
+* +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+class rtp_packet{
+public:
+    enum{
+        k_rtp_header_size = 12
+    };
+    // get ssrc of bytes int a rtp packet buffer
+    static bool read_ssrc(const uint8_t* bytes,size_t sizeBytes,uint32_t* out_ssrc);
+    // override ssrc int a rtp packet buffer bytes
+    static bool override_ssrc(const uint8_t* bytes,size_t sizeBytes,uint32_t ssrc);
+    /// @brief check whether rtp packet buffer is valid 
+    /// header use 12 bytes,payload type is in < 64 or >= 96
+    /// @param bytes 
+    /// @param sizeBytes 
+    /// @return 
+    static bool valid(const uint8_t* bytes,size_t sizeBytes);
+};
+
+};//!namespace zav
+
+#endif//!ZAV_PROTO_RTP_RTCP_H_

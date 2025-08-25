@@ -22,6 +22,7 @@ struct BConfig : public Base...{};
 
 int main(int argc,char** argv){
     AConfig<Http,Rtsp> aconfig;
+    
     BConfig<Rtsp,Golbal> bconfig;
     
 

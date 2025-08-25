@@ -1,10 +1,10 @@
 /** 
- * @copyright Copyright © 2020-2025 code by zhaoj
+ * @copyright Copyright © 2020-2025 zhaoj
  * 
  * LICENSE
- * 
- * MIT License
  *
+ * MIT License
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -22,44 +22,46 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
+ * 
  */
 
- /**
+/**
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
 
-#include "zlog.h"
-#include "utility.h"
+#include "rtp_rtcp.h"
+#include <zpkg/utility.h>
 
-namespace zlog{
+namespace zav{
 
-log_service* log_service::service(){
-    static log_service single_log_service;
-    return &single_log_service;
+// get ssrc of bytes int a rtp packet buffer
+bool rtp_packet::read_ssrc(const uint8_t* bytes,size_t sizeBytes,uint32_t* out_ssrc){
+    if(sizeBytes < k_rtp_header_size){
+            return false;
+    }
+    Z_ASSERT(out_ssrc);Z_ASSERT(bytes);
+
+    *out_ssrc = Z_RBE32(bytes + 8);
+    return true;
+}
+// override ssrc int a rtp packet buffer bytes
+bool rtp_packet::override_ssrc(const uint8_t* bytes,size_t sizeBytes,uint32_t ssrc){
+    if(sizeBytes < k_rtp_header_size){
+        return false;
+    }
+
+    Z_WBE32(bytes + 8,ssrc);
+    return true;
 }
 
-log_service::log_service(){
-    // 初始化调用一次 在初始化调用这里 初始化默认logger
-    default_logger_ = logger::create_or_get_sync_logger();
+bool rtp_packet::valid(const uint8_t* bytes,size_t sizeBytes){
+    if(sizeBytes < k_rtp_header_size){
+        return false;
+    }
+
+    uint8_t pt = (*(bytes + 1)) & 0x7F;
+    return (pt < 64 || pt >= 96);
 }
 
-logger* logger::create_or_get_sync_logger(){
-    logger* sync_logger = new logger();
-    
-    sync_logger->create_or_get_console_sink();
-
-    return sync_logger;
-}
-
-std::shared_ptr<log_sink> logger::create_or_get_console_sink(){
-    return nullptr;
-}
-
-void logger::remove_console_sink(){
-
-}
-
-
-};//!namespace zpkg
+}//!namespace zav
