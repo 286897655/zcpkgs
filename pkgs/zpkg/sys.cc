@@ -49,6 +49,7 @@
 #include <sys/wait.h>
 #include <sys/syslog.h>
 #include <execinfo.h>
+#include <sys/syscall.h>
 #endif
 
 namespace zpkg{
@@ -335,6 +336,26 @@ std::string sys_exec_cmd(const std::string& command)
 }
 
 namespace sys{
+
+#ifdef Z_SYS_LINUX
+# define gettid() syscall(SYS_gettid)
+#endif
+
+int this_thread::get_priority(){
+#ifdef Z_SYS_LINUX
+    return getpriority(PRIO_PROCESS,gettid());
+#else
+    return 0;
+#endif
+}
+
+int this_thread::set_priority(int priority){
+#ifdef Z_SYS_LINUX
+    return setpriority(PRIO_PROCESS,gettid(),priority);
+#else
+    return Z_INT_SUCCESS;
+#endif
+}
 
 process_mutex::process_mutex():lock_fd(-1){
     

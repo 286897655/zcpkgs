@@ -30,86 +30,74 @@
  * @brief 
  */
 
-#include "zio/io_loop_ctx.h"
+#include "io_ctx.h"
 #include "zio/io_loop_impl.h"
 #include "zio/epoll_poller.h"
 #include <zpkg/memory.h>
 #include <zlog/log.h>
 namespace zio{
 
-static io_loop_t* main_thread_loop = nullptr;
+class io_loop_pool{
+public:
+    io_loop_pool();
+private:
+    std::vector<std::unique_ptr<std::thread>> threads_;
+};
 
-static std::vector<io_loop_t*> loop_pool;
+///////////////////// static field //////////////////////////////
+static io_loop_t* default_loop_ptr = nullptr;
+static thread_local io_loop_t* tls_loop_ptr = nullptr;
+///////////////////// static field //////////////////////////////
 
-thread_local io_loop_t* thread_loop = nullptr;
+io_loop_t* io_loop_t::create_thread_loop(){
+    Z_ASSERT(!tls_loop_ptr);
+    tls_loop_ptr = new io_loop_t();
 
-static std::once_flag once_main_loop;
-// static io_loop_t* main_loop();
-io_loop_t* io_loop_t::main_loop(){
-    if(main_thread_loop) return main_thread_loop;
+    return tls_loop_ptr;
+}
 
-    // call thread has create thread loop before,bind it to main thread loop
-    if(thread_loop){
-        main_thread_loop = thread_loop;
-        return main_thread_loop;
-    }
-
-    std::call_once(once_main_loop,[](){
-        create_this_thread_loop();
+// static io_loop_t* default_loop();
+io_loop_t* io_loop_t::default_loop(){
+    if(default_loop_ptr)
+        return default_loop_ptr;
+    // no default_loop create default loop and bind tls
+    static std::once_flag default_once_flag;
+    std::call_once(default_once_flag,[](){
+        default_loop_ptr = create_thread_loop();
     });
-
-    return main_loop();
+    Z_ASSERT(default_loop_ptr);
+    return default_loop_ptr;
 }
 
-// static io_loop_t* create_this_thread_loop();
-io_loop_t* io_loop_t::create_this_thread_loop(const std::string& name){
-    Z_ASSERT(!thread_loop);
-    io_loop_t* loop = new io_loop_t(name);
-    loop->loop_impl_->start();
-    // bind loop to this thread_loop in tls
-    thread_loop = loop;
-    return loop;
-}
-
-// static io_loop_t* next_loop();
-io_loop_t* io_loop_t::next_loop(){
-    return loop_pool[0];
-}
-// static io_loop_t* min_load_loop();
-io_loop_t* io_loop_t::min_load_loop(){
-    return loop_pool[0];
-}
 // static io_loop_t* this_thread_loop();
 io_loop_t* io_loop_t::this_thread_loop(){
-    return thread_loop;
+    return tls_loop_ptr;
 }
 // static size_t create_loop_pool(const std::string& name="",size_t count = 0);
-size_t io_loop_t::create_loop_pool(const std::string& name,size_t count){
-    // set default name and default thread count
-    std::string thread_name = name.empty() ? "io loop" : name;
-    count = count > 0 ? count : std::thread::hardware_concurrency();
-    for(size_t i = 1 ; i <= count ; i++){
-        std::string loop_name = thread_name + " " + std::to_string(i);
-        std::thread* run_thread = new std::thread([loop_name,run_thread](){
-            io_loop_t* loop = io_loop_t::create_this_thread_loop(loop_name);
-            loop->bind_thread(run_thread);
-            loop_pool.emplace_back(loop);
-            loop->run();
-        });
-    }
-    return count;
+// size_t io_loop_t::create_loop_pool(const std::string& name,size_t count){
+//     // set default name and default thread count
+//     std::string thread_name = name.empty() ? "io loop" : name;
+//     count = count > 0 ? count : std::thread::hardware_concurrency();
+//     for(size_t i = 1 ; i <= count ; i++){
+//         std::string loop_name = thread_name + " " + std::to_string(i);
+//         std::thread* run_thread = new std::thread([loop_name,run_thread](){
+//             io_loop_t* loop = io_loop_t::create_this_thread_loop(loop_name);
+//             loop->bind_thread(run_thread);
+//             loop_pool.emplace_back(loop);
+//             loop->run();
+//         });
+//     }
+//     return count;
+// }
+
+// default constructor
+io_loop_t::io_loop_t():loop_impl_(new io_loop_impl()){
+
 }
 
-io_loop_t::io_loop_t(const std::string& loop_name)
-    :loop_impl_(new io_loop_impl(loop_name))
-{
-
-}
 io_loop_t::~io_loop_t(){
-
-}
-void io_loop_t::bind_thread(std::thread* thread){
-    loop_impl_->move_to_thread(thread);
+    delete loop_impl_;
+    loop_impl_=nullptr;
 }
 
 void io_loop_t::async(Func&& callback){
@@ -125,12 +113,16 @@ void io_loop_t::sync(Func&& func){
     
 }
 
-int io_loop_t::run(){
+void io_loop_t::add(Func&& func){
+    return async(std::move(func));
+}
+
+int io_loop_t::run_loop(){
     return loop_impl_->run();
 }
 
 bool io_loop_t::is_this_thread_loop() const{
-    return thread_loop == this;
+    return tls_loop_ptr == this;
 }
 
 io_poller_t* io_loop_t::poller() const{

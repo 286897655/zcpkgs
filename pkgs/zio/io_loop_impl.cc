@@ -35,15 +35,14 @@
 #include <zlog/log.h>
 
 namespace zio{
-io_loop_impl::io_loop_impl(const std::string& threadname)
-        :loop_thread_name_(threadname){
+io_loop_impl::io_loop_impl(){
+    // create poller
+    loop_poller_ = new io_poller_t();
+    // create thread weak up
+    wake_up_ = new wake_up_pipe_t(loop_poller_,this);
 }
 
 io_loop_impl::~io_loop_impl(){
-    if(run_thread_){
-        run_thread_->join();
-    }
-    Z_DELETE_P(run_thread_);
     Z_DELETE_P(wake_up_);
     Z_DELETE_P(loop_poller_);
 }
@@ -58,19 +57,14 @@ int io_loop_impl::run(){
     return Z_INT_SUCCESS;
 }
 
-void io_loop_impl::start(){
-    // set thread name
-    if(!loop_thread_name_.empty()){
-        pthread_setname_np(pthread_self(),loop_thread_name_.c_str());
-    }
-    // create poller
-    loop_poller_ = new io_poller_t();
-    // create thread weak up
-    wake_up_ = new wake_up_pipe_t(loop_poller_,this);
-    zlog("zio:created io_loop {}",loop_thread_name_);
-}
+// void io_loop_impl::start(){
+//     // set thread name
+//     if(!loop_thread_name_.empty()){
+//         pthread_setname_np(pthread_self(),loop_thread_name_.c_str());
+//     }
+// }
 
-void io_loop_impl::async(executor::Func&& func){
+void io_loop_impl::async(Func&& func){
     // not in this thread insert to tasklist
     {
         std::lock_guard<std::mutex> lock(task_mtx_);
@@ -85,7 +79,7 @@ void io_loop_impl::on_wake_up(){
     //Z_ASSERT(is_this_thread_loop());
 
     // flush task's
-    std::vector<executor::Func> swap_task;
+    std::vector<Func> swap_task;
     {
         std::lock_guard<std::mutex> lock(task_mtx_);
         swap_task.swap(async_tasks_);

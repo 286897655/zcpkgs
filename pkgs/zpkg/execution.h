@@ -30,27 +30,21 @@
  * @brief 
  */
 
-#ifndef ZIO_EXECUTION_H_
-#define ZIO_EXECUTION_H_
+#ifndef ZPKG_EXECUTION_H_
+#define ZPKG_EXECUTION_H_
 
-#include <functional>
+#include <zpkg/functions.h>
 
-namespace zio{
+namespace zpkg{
 
 class executor{
 public:
-    using Func = std::function<void()>;
-    /// @brief 异步执行一个function 任务
-    /// @param func 
-    virtual void async(Func&& func) = 0;
+    virtual ~executor() = default;
 
-    /// @brief 同步执行一个function 任务
-    /// @param func 
-    virtual void sync(Func&& func) = 0;
+    virtual void add(Func&& func) = 0;
 };
 
 
-};//!namespace zio
+};//!namespace zpkg
 
-
-#endif//!ZIO_EXECUTION_H_
+#endif//!ZPKG_EXECUTION_H_

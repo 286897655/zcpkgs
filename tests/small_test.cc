@@ -600,6 +600,11 @@ std::string CRC32::operator()(const std::string& text)
 }
 
 int main(int argc,char** argv){
+    // test fmt time
+    std::cout << zpkg::times::fmt_now_s() << std::endl;
+    std::cout << zpkg::times::fmt_now_s("%Y-%m-%d-%H-%M-%S") << std::endl;
+
+    return 0;
     // crc32 test
     // 标准测试 "123456789"
     const std::string test_data = "123456789";

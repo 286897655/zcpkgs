@@ -81,6 +81,19 @@ std::string sys_exec_cmd(const std::string& command);
 
 namespace sys{
 
+class this_thread{
+public:
+    /// @brief get this thread proority default is 0
+    /// @return 
+    static int get_priority();
+    /// @brief set thread priority -20-20
+    /// -20 is highest priority 20 is lowest priority
+    /// 20 10 0(default) -10 -20
+    /// @param priority 
+    /// @return 
+    static int set_priority(int priority);
+};
+
 /// @brief class for single process mutex
 class process_mutex{
 public:

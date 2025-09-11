@@ -1,4 +1,4 @@
-#include <zio/io_loop_ctx.h>
+#include <zio/io_ctx.h>
 #include <zlog/log.h>
 
 
@@ -20,13 +20,8 @@ void test_loop_func(){
 
 int main(int argc,char** argv){
     zlog::logger::create_defaultLogger();
-    size_t created_loop = zio::io_loop_t::create_loop_pool();
-    zio::io_loop_t* default_loop = zio::io_loop_t::main_loop();
-    std::thread new_thread([default_loop](){
-        default_loop->async([](){
-            zlog("run in new thread");
-            test_loop_func();
-        });
-    });
-    default_loop->run();
+    //size_t created_loop = zio::io_loop_t::create_loop_pool();
+    zio::io_loop_t* default_loop = zio::io_loop_t::default_loop();
+    test_loop_func();
+    default_loop->run_loop();
 }

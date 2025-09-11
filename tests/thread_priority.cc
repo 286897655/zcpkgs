@@ -30,61 +30,32 @@
  * @brief 
  */
 
-#ifndef ZIO_EPOLL_POLLER_H_
-#define ZIO_EPOLL_POLLER_H_
+#include <pthread.h>
+#include <zlog/log.h>
 
-#include <atomic>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+#include <sched.h>
+#include <sys/resource.h>
+#include <sys/syscall.h>
+# define gettid() syscall(SYS_gettid)
 
-#include "io_ctx.h"
+int main(int arc,char** argv){
+    zlog::logger::create_defaultLogger();
 
-namespace zio{
+    int min_priority = sched_get_priority_min(SCHED_OTHER);
+    int max_priority = sched_get_priority_max(SCHED_OTHER);
 
-using epoll_handle = int;
+    zlog("thread min:{} ---- max:{}",min_priority,max_priority);
 
-enum{
-    // invalid epoll handle defind
-    epoll_invalie_handle = -1,
-    // max io epoll events in one loop
-    epoll_max_io_events = 1024
+
+    std::thread back_thread([](){
+        zlog("run in current thread:{}",gettid());
+        zlog("current thread prio:{}",getpriority(PRIO_PROCESS,gettid()));
+
+        zlog("set thread prio:-10");
+        zlog("set thread prio result:{}",setpriority(PRIO_PROCESS,gettid(),-10));
+        while(1){
+            sleep(2);
+        }
+    });
+    back_thread.join();
 };
-
-struct epoll_entity_t;
-
-class epoll_poller{
-public:
-    static epoll_poller* create();
-private:
-    explicit epoll_poller(epoll_handle handle);
-public:
-    ~epoll_poller();
-
-    poll_handle_t add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler);
-    void rm_fd(poll_handle_t handle);
-    void set_in_event(poll_handle_t handle);
-    void reset_in_event(poll_handle_t handle);
-    void set_out_event(poll_handle_t handle);
-    void reset_out_event(poll_handle_t handle);
-    uint32_t load();
-
-    void poll(int timeout = -1);
-
-private:
-    
-private:
-    epoll_handle epoll_fd_;
-    uint32_t load_;
-    std::vector<struct epoll_entity_t*> retired_;
-    Z_DISABLE_COPY_MOVE(epoll_poller)
-};
-
-
-
-
-};
-
-
-
-#endif //!ZIO_EPOLL_POLLER_H_

@@ -33,29 +33,47 @@
 #ifndef ZIO_IO_LOOP_H_
 #define ZIO_IO_LOOP_H_
 
-#include <zio/execution.h>
 #include <string>
 #include <thread>
 #include <atomic>
 #include <zpkg/utility.h>
 #include <zpkg/times.h>
+#include <zpkg/execution.h>
 
 namespace zio{
+
+/**
+ * design:
+ * one loop per thread 
+*/
 
 // impl for io loop
 class io_loop_impl;
 class io_poller_t;
-class io_loop_t : public executor{
+
+using Func = zpkg::Func;
+
+class io_executor : public virtual zpkg::executor{
 public:
-    // 在主线程中先调用一次
-    static io_loop_t* main_loop();
-    static io_loop_t* create_this_thread_loop(const std::string& name="");
-    static io_loop_t* next_loop();
-    static io_loop_t* min_load_loop();
+    virtual ~io_executor()=default;
+
+    virtual void async(Func&& func) = 0;
+    virtual void  sync(Func&& func) = 0;
+};
+
+class io_loop_t : public virtual io_executor{
+public:
+    static io_loop_t* default_loop();
+    // next io loop in pool use round-robin
+    //static io_loop_t* pool_next_loop();
+    // get io loop in pool with min io_fd_t
+    //static io_loop_t* pool_min_loop();
+    // get io loop in pool with lower load 
+    //static io_loop_t* pool_low_load_loop();
     static io_loop_t* this_thread_loop();
-    static size_t create_loop_pool(const std::string& name="",size_t count = 0);
+    //static size_t create_loop_pool(const std::string& name="",size_t count = 0);
 public:
-    int run();
+    int run_loop();
     bool is_this_thread_loop() const;
     io_poller_t* poller() const;
     uint32_t load();
@@ -63,12 +81,11 @@ public:
 public:
     virtual void async(Func&& func) override;
     virtual void sync(Func&& func) override;
-
+    virtual void add(Func&& func) override;
 private:
-    explicit io_loop_t(const std::string& loop_name);
+    io_loop_t();
     virtual ~io_loop_t();
-
-    void bind_thread(std::thread* thread);
+    static io_loop_t* create_thread_loop();
 private:
     Z_DISABLE_COPY_MOVE(io_loop_t)
     io_loop_impl* loop_impl_;

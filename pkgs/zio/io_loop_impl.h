@@ -37,7 +37,7 @@
 #include <vector>
 #include <zpkg/utility.h>
 #include <zpkg/times.h>
-#include "zio/io_loop_ctx.h"
+#include "io_ctx.h"
 
 namespace zio{
 
@@ -45,29 +45,24 @@ using SharedTimerTask = std::shared_ptr<io_timer_t::time_after_task>;
 class wake_up_pipe_t;
 class io_loop_impl{
 public:
-    explicit io_loop_impl(const std::string& threadname);
+    explicit io_loop_impl();
     ~io_loop_impl();
 
     int run();
-    void start();
-    void move_to_thread(std::thread* thread){
-        run_thread_ = thread;
-    }
+    //void start();
     io_poller_t* poller() const{
         return loop_poller_;
     }
-    void async(executor::Func&& func);
+    void async(Func&& func);
     // run in loop thread
     void on_wake_up();
     void add_time_task(const SharedTimerTask& task);
     int execute_time_after_task();
 private:
-    std::string loop_thread_name_;
-    std::thread* run_thread_ = nullptr;
     io_poller_t* loop_poller_ = nullptr;
     wake_up_pipe_t* wake_up_ = nullptr;
     std::mutex task_mtx_;
-    std::vector<executor::Func> async_tasks_;
+    std::vector<Func> async_tasks_;
     std::multimap<z_time_t, SharedTimerTask> time_after_tasks_;
 };
 
