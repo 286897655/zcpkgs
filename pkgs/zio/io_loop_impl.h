@@ -49,7 +49,6 @@ public:
     ~io_loop_impl();
 
     int run();
-    //void start();
     io_poller_t* poller() const{
         return loop_poller_;
     }

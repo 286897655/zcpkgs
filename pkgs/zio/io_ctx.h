@@ -70,14 +70,15 @@ public:
     //static io_loop_t* pool_min_loop();
     // get io loop in pool with lower load 
     //static io_loop_t* pool_low_load_loop();
+    static io_loop_t* create_this_thread_loop();
     static io_loop_t* this_thread_loop();
-    //static size_t create_loop_pool(const std::string& name="",size_t count = 0);
+    static size_t create_loop_pool(size_t count = 0);
 public:
     int run_loop();
     bool is_this_thread_loop() const;
     io_poller_t* poller() const;
     uint32_t load();
-
+    void set_loop_name(const std::string name);
 public:
     virtual void async(Func&& func) override;
     virtual void sync(Func&& func) override;
@@ -85,11 +86,10 @@ public:
 private:
     io_loop_t();
     virtual ~io_loop_t();
-    static io_loop_t* create_thread_loop();
-private:
     Z_DISABLE_COPY_MOVE(io_loop_t)
-    io_loop_impl* loop_impl_;
 
+private:
+    io_loop_impl* loop_impl_;
     friend class io_timer_t;
 };
 

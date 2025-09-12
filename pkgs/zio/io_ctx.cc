@@ -39,17 +39,33 @@ namespace zio{
 
 class io_loop_pool{
 public:
-    io_loop_pool();
+    io_loop_pool()=default;
+    ~io_loop_pool()=default;
+
+    void create(size_t count){
+        for(size_t i = 0;i < count;i++){
+            std::string thread_name = "io loop " + std::to_string(i);
+            threads_.emplace_back(std::make_unique<std::thread>([this,thread_name](){
+                io_loop_t* loop = io_loop_t::create_this_thread_loop();
+                loops_.emplace_back(loop);
+                loop->set_loop_name(thread_name);
+                loop->run_loop();
+            }));
+        }
+    };
+
 private:
     std::vector<std::unique_ptr<std::thread>> threads_;
+    std::vector<io_loop_t*> loops_;
 };
 
 ///////////////////// static field //////////////////////////////
 static io_loop_t* default_loop_ptr = nullptr;
 static thread_local io_loop_t* tls_loop_ptr = nullptr;
+static io_loop_pool* loop_pool_ = nullptr;
 ///////////////////// static field //////////////////////////////
 
-io_loop_t* io_loop_t::create_thread_loop(){
+io_loop_t* io_loop_t::create_this_thread_loop(){
     Z_ASSERT(!tls_loop_ptr);
     tls_loop_ptr = new io_loop_t();
 
@@ -63,7 +79,7 @@ io_loop_t* io_loop_t::default_loop(){
     // no default_loop create default loop and bind tls
     static std::once_flag default_once_flag;
     std::call_once(default_once_flag,[](){
-        default_loop_ptr = create_thread_loop();
+        default_loop_ptr = create_this_thread_loop();
     });
     Z_ASSERT(default_loop_ptr);
     return default_loop_ptr;
@@ -73,22 +89,19 @@ io_loop_t* io_loop_t::default_loop(){
 io_loop_t* io_loop_t::this_thread_loop(){
     return tls_loop_ptr;
 }
-// static size_t create_loop_pool(const std::string& name="",size_t count = 0);
-// size_t io_loop_t::create_loop_pool(const std::string& name,size_t count){
-//     // set default name and default thread count
-//     std::string thread_name = name.empty() ? "io loop" : name;
-//     count = count > 0 ? count : std::thread::hardware_concurrency();
-//     for(size_t i = 1 ; i <= count ; i++){
-//         std::string loop_name = thread_name + " " + std::to_string(i);
-//         std::thread* run_thread = new std::thread([loop_name,run_thread](){
-//             io_loop_t* loop = io_loop_t::create_this_thread_loop(loop_name);
-//             loop->bind_thread(run_thread);
-//             loop_pool.emplace_back(loop);
-//             loop->run();
-//         });
-//     }
-//     return count;
-// }
+
+// static size_t create_loop_pool(size_t count = 0);
+size_t io_loop_t::create_loop_pool(size_t count){
+    count = count > 0 ? count : std::thread::hardware_concurrency();
+    static std::once_flag pool_once_flag;
+    std::call_once(pool_once_flag,[count](){
+        Z_ASSERT(!loop_pool_);
+        loop_pool_ = new io_loop_pool();
+        loop_pool_->create(count);
+    });
+    Z_ASSERT(loop_pool_);
+    return count;
+}
 
 // default constructor
 io_loop_t::io_loop_t():loop_impl_(new io_loop_impl()){
@@ -131,6 +144,12 @@ io_poller_t* io_loop_t::poller() const{
 
 uint32_t io_loop_t::load(){
     return loop_impl_->poller()->load();
+}
+
+void io_loop_t::set_loop_name(const std::string name){
+    async([name](){
+        pthread_setname_np(pthread_self(),name.c_str());
+    });
 }
 
 ////////////////////////io_poller_t//////////////////////////////////////

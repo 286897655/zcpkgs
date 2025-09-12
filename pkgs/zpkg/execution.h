@@ -37,6 +37,9 @@
 
 namespace zpkg{
 
+/// @brief 两类实现该executor
+/// 一、线程池实现，基于信号量控制
+/// 二、事件reactor线程池实现，基于epoll-wait
 class executor{
 public:
     virtual ~executor() = default;
@@ -44,6 +47,10 @@ public:
     virtual void add(Func&& func) = 0;
 };
 
+// 基于任务队列的线程池
+class thread_executor : public virtual executor{
+
+};
 
 };//!namespace zpkg
 

@@ -21,6 +21,8 @@ void test_loop_func(){
 int main(int argc,char** argv){
     zlog::logger::create_defaultLogger();
     //size_t created_loop = zio::io_loop_t::create_loop_pool();
+    size_t created = zio::io_loop_t::create_loop_pool();
+    zlog("create loop {}",created);
     zio::io_loop_t* default_loop = zio::io_loop_t::default_loop();
     test_loop_func();
     default_loop->run_loop();

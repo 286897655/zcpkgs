@@ -57,13 +57,6 @@ int io_loop_impl::run(){
     return Z_INT_SUCCESS;
 }
 
-// void io_loop_impl::start(){
-//     // set thread name
-//     if(!loop_thread_name_.empty()){
-//         pthread_setname_np(pthread_self(),loop_thread_name_.c_str());
-//     }
-// }
-
 void io_loop_impl::async(Func&& func){
     // not in this thread insert to tasklist
     {

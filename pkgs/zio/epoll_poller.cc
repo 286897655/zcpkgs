@@ -155,7 +155,6 @@ void epoll_poller::poll(int timeout)
 {
     epoll_event events[epoll_max_io_events];
     const int event_count = epoll_wait(epoll_fd_,&events[0],epoll_max_io_events,timeout ? timeout : -1);
-    zlog("epoll_wait timeouted:{}",timeout);
     if(event_count <= 0){
         return;
     }
