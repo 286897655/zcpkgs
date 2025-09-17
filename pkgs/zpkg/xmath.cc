@@ -31,6 +31,7 @@
  */
 
 #include "xmath.h"
+#include <cmath>
 
 namespace zpkg{
 
@@ -43,7 +44,7 @@ bool primes::is_prime(uint32_t x){
         return false; 
     }
 
-    uint32_t limit = sqrt(x);
+    uint32_t limit = std::sqrt(x);
     for (uint32_t factor = 3; factor <= limit; factor += 2) {
         if ((x % factor) == 0) {
             return false;
