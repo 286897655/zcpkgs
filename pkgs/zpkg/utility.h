@@ -118,12 +118,11 @@ inline std::unique_ptr<defer<Fn>> at_defer(Fn&& fn){
 
 /**
  * class that makes derived classes not copyable and not moveable. Like boost::noncopyable
- * without boost.
+ * without boost. like Z_DISABLE_COPY_MOVE(CLASS)
  */
 class nomovecopy {
 protected:
-  nomovecopy() = default;
-
+  nomovecopy()=default;
   // not-moveable.
   nomovecopy(nomovecopy&&) noexcept = delete;
   nomovecopy& operator=(nomovecopy&&) noexcept = delete;
@@ -131,6 +130,20 @@ protected:
   // not-copyable.
   nomovecopy(const nomovecopy&) = delete;
   nomovecopy& operator=(const nomovecopy&) = delete;
+};
+
+/**
+ * template class for singleton instance
+*/
+template<typename zclass>
+class singleton_t{
+public:
+    template<typename ...Args>
+    static zclass* instance(Args &&... args){
+        static zclass singleton_instance(std::forward<Args>(args)...);
+
+        return &singleton_instance;
+    }
 };
 
 };//!namespace zpkg

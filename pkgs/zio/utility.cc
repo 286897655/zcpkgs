@@ -29,42 +29,35 @@
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
-#ifndef ZIO_IO_LOOP_IMPL_H_
-#define ZIO_IO_LOOP_IMPL_H_
 
-#include <map>
-#include <mutex>
-#include <vector>
+#include "utility.h"
 #include <zpkg/utility.h>
-#include <zpkg/times.h>
-#include "io_ctx.h"
+#include <fcntl.h>
 
 namespace zio{
 
-using SharedTimerTask = std::shared_ptr<io_timer_t::time_after_task>;
-class wake_up_pipe_t;
-class io_loop_impl{
-public:
-    explicit io_loop_impl();
-    ~io_loop_impl();
+void fd_control::make_non_blocking(io_fd_t fd){
+#ifdef Z_SYS_WINDOWS
+    u_long nonblock = 1;
+    const int rc = ioctlsocket (fd, FIONBIO, &nonblock);
+#elif Z_SYS_LINUX
+    int flags = ::fcntl (fd, F_GETFL, 0);
+    if (flags < 0)
+        flags = 0;
+    const int rc = ::fcntl (fd, F_SETFL, flags | O_NONBLOCK);
+#endif
+    Z_ASSERT(rc >= 0);
+}
 
-    int run();
-    io_poller_t* poller() const{
-        return loop_poller_;
+void fd_control::make_close_on_exec(io_fd_t fd){
+#ifdef Z_SYS_LINUX
+    int flags = fcntl(fd, F_GETFD);
+    if(flags < 0){
+        flags =0;
     }
-    void async(Func&& func);
-    // run in loop thread
-    void on_wake_up();
-    void add_time_task(const SharedTimerTask& task);
-    int execute_time_after_task();
-private:
-    io_poller_t* loop_poller_ = nullptr;
-    wake_up_pipe_t* wake_up_ = nullptr;
-    std::mutex task_mtx_;
-    std::vector<Func> async_tasks_;
-    std::multimap<z_time_t, SharedTimerTask> time_after_tasks_;
-};
+    const int rc = ::fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+    Z_ASSERT(rc >= 0);
+#endif
+}
 
 };//!namespace zio
-
-#endif//ZIO_IO_LOOP_IMPL_H_

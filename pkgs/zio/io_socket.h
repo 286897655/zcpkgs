@@ -33,7 +33,7 @@
 #ifndef ZIO_IO_SOCKET_H_
 #define ZIO_IO_SOCKET_H_
 
-#include <zio/io_ctx.h>
+#include <zio/events.h>
 
 namespace zio{
 
@@ -66,10 +66,10 @@ private:
 
 
 // 该对象创建释放都很频繁而且容易异步操作，因此使用智能指针管理
-class io_socket_t : public i_address,public poll_event_handler,public zpkg::apply_shared<io_socket_t>{
+class io_socket_t : public i_address,public event_poll_handler,public zpkg::apply_shared<io_socket_t>{
 private:
     io_fd_t socket_fd_;
-    io_loop_t* poller_loop_;
+    event_loop_t* poller_loop_;
 public:
     enum class family{
         IPv4 ,// AF_INET
@@ -84,10 +84,10 @@ public:
         Raw              = 3
     };
 public:
-    static io_socket_t* create(io_loop_t* loop,io_fd_t fd);
-    static io_socket_t* create(io_loop_t* loop,family _family,type _type);
+    static io_socket_t* create(event_loop_t* loop,io_fd_t fd);
+    static io_socket_t* create(event_loop_t* loop,family _family,type _type);
 
-    explicit io_socket_t(io_loop_t* loop,family _family,type _type);
+    explicit io_socket_t(event_loop_t* loop,family _family,type _type);
     virtual ~io_socket_t();
 
     bool bind(const std::string& ip,int port);
@@ -106,7 +106,7 @@ public:
     virtual void in_event() override;
     virtual void out_event() override;
 private:
-    io_socket_t(io_loop_t* loop,io_fd_t fd);
+    io_socket_t(event_loop_t* loop,io_fd_t fd);
     Z_DISABLE_COPY_MOVE(io_socket_t);
 };
 
@@ -115,12 +115,12 @@ private:
 */
 class io_conn_t : public zpkg::apply_shared<io_conn_t>{
 public:
-    static io_conn_t::shared create(io_loop_t* loop,io_fd_t fd);
+    static io_conn_t::shared create(event_loop_t* loop,io_fd_t fd);
 public:
     
 private:
     Z_DISABLE_COPY_MOVE(io_conn_t);
-    io_poller_t* poller_;
+    event_poller_t* poller_;
 };
 
 };//!namespace zio

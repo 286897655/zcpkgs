@@ -30,34 +30,80 @@
  * @brief 
  */
 
-#include "io_loop_impl.h"
-#include "wake_up_pipe.h"
+#include "event_loop_impl.h"
 #include <zlog/log.h>
+#include "epoll_poller.h"
+#include "wake_up.h"
 
 namespace zio{
-io_loop_impl::io_loop_impl(){
+//////////////////////////////event_poller_t///////////////////////////////
+event_poller_t::event_poller_t():epoll_poller_(epoll_poller::create()){
+
+}
+event_poller_t::~event_poller_t(){
+    delete epoll_poller_;
+    epoll_poller_ = nullptr;
+}
+
+void event_poller_t::poll(int timeout){
+    epoll_poller_->poll(timeout);
+}
+
+poll_handle_t event_poller_t::add_fd(io_fd_t fd,int poll_event,event_poll_handler* handler){
+    return epoll_poller_->add_fd(fd,poll_event,handler);
+}
+
+// poll_handle will be delete later,caller do not use poll_handle again
+void event_poller_t::rm_fd(poll_handle_t handle){
+    return epoll_poller_->rm_fd(handle);
+}
+
+void event_poller_t::set_in_event(poll_handle_t handle){
+    return epoll_poller_->set_in_event(handle);
+}
+
+void event_poller_t::reset_in_event(poll_handle_t handle){
+    return epoll_poller_->reset_in_event(handle);
+}
+
+void event_poller_t::set_out_event(poll_handle_t handle){
+    return epoll_poller_->set_out_event(handle);
+}
+
+void event_poller_t::reset_out_event(poll_handle_t handle){
+    return epoll_poller_->reset_out_event(handle);
+}
+
+uint32_t event_poller_t::load(){
+    return epoll_poller_->load();
+}
+//////////////////////////////event_poller_t///////////////////////////////
+
+event_loop_impl::event_loop_impl(){
     // create poller
-    loop_poller_ = new io_poller_t();
+    poller_ = new event_poller_t();
     // create thread weak up
-    wake_up_ = new wake_up_pipe_t(loop_poller_,this);
+    wake_up_ = new wake_up_pipe_t(this);
 }
 
-io_loop_impl::~io_loop_impl(){
+event_loop_impl::~event_loop_impl(){
     Z_DELETE_P(wake_up_);
-    Z_DELETE_P(loop_poller_);
+    Z_DELETE_P(poller_);
 }
 
-int io_loop_impl::run(){
+event_poller_t* event_loop_impl::poller() const{
+    return poller_;
+}
+
+void event_loop_impl::run(){
     while(1){
         // get poll timeout time and flush time after task
         int poll_time = execute_time_after_task();
-        loop_poller_->poll(poll_time);
+        poller_->poll(poll_time);
     }
-
-    return Z_INT_SUCCESS;
 }
 
-void io_loop_impl::async(Func&& func){
+void event_loop_impl::async(Func&& func){
     // not in this thread insert to tasklist
     {
         std::lock_guard<std::mutex> lock(task_mtx_);
@@ -67,7 +113,7 @@ void io_loop_impl::async(Func&& func){
     wake_up_->wake_up();
 }
 
-void io_loop_impl::on_wake_up(){
+void event_loop_impl::on_wake_up(){
     // TODO
     //Z_ASSERT(is_this_thread_loop());
 
@@ -88,14 +134,14 @@ void io_loop_impl::on_wake_up(){
     }
 }
 
-void io_loop_impl::add_time_task(const SharedTimerTask& task){
+void event_loop_impl::add_time_task(const shared_timer_task& task){
     z_time_t time_point = zpkg::times::now_ms() + task->time_after();
 
     async([time_point,task,this](){
         time_after_tasks_.emplace(time_point,task);
     });
 }
-int io_loop_impl::execute_time_after_task(){
+int event_loop_impl::execute_time_after_task(){
     int timed = 0;
     // no task to do
     if(time_after_tasks_.empty())
@@ -115,7 +161,7 @@ int io_loop_impl::execute_time_after_task(){
         // execute expired task
         // save and remove the task
         {
-            SharedTimerTask task = it->second;
+            shared_timer_task task = it->second;
             time_after_tasks_.erase(it);
             try{
                 if(task->call()){
@@ -131,6 +177,4 @@ int io_loop_impl::execute_time_after_task(){
 
     return timed;
 }
-
-
-};//!namespace zio
+};

@@ -34,7 +34,7 @@
 #include <sys/epoll.h>
 #include "uv_io_error.h"
 #include <zlog/log.h>
-#include "zio/io_utility.h"
+#include "events.h"
 
 namespace zio{
 
@@ -75,19 +75,19 @@ epoll_poller::~epoll_poller()
 struct epoll_entity_t{
     io_fd_t fd;
     struct epoll_event e_event;
-    poll_event_handler* poll_handler;
+    event_poll_handler* poll_handler;
 };
 
-poll_handle_t epoll_poller::add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler)
+poll_handle_t epoll_poller::add_fd(io_fd_t fd,int poll_event,event_poll_handler* handler)
 {
     // TODO 加一个判断是否在fd线程的操作
     //Z_ASSERT()
     epoll_entity_t* epoll_entity = new epoll_entity_t();
     epoll_entity->fd = fd;
     epoll_entity->poll_handler = handler;
-    epoll_entity->e_event.events = ((poll_event & event_read ? EPOLLIN : 0) |
-                                    (poll_event & event_write ? EPOLLOUT : 0) |
-                                    (poll_event & event_ET ? EPOLLET : 0)) ;
+    epoll_entity->e_event.events = ((poll_event & EVENT_READ ? EPOLLIN : 0) |
+                                    (poll_event & EVENT_WRITE ? EPOLLOUT : 0) |
+                                    (poll_event & EVENT_ET ? EPOLLET : 0)) ;
     epoll_entity->e_event.data.ptr = epoll_entity;
 
     const int rc = epoll_ctl(epoll_fd_,EPOLL_CTL_ADD,fd,&epoll_entity->e_event);

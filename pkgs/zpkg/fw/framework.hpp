@@ -5,21 +5,6 @@
 #include <functional>
 
 namespace fw{
-template<typename T>
-class TSingleton{
-public:
-    template<typename ...Args>
-    static T* Singleton(Args &&... args){
-        static T singleton(std::forward<Args>(args)...);
-
-        return &singleton;
-    }
-
-protected:
-    TSingleton() = default;
-    ~TSingleton() = default;
-};
-
 template<typename Event>
 class EventListener{
 public:

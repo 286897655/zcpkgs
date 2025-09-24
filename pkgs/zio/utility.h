@@ -29,35 +29,49 @@
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
-
-#include "zio/io_utility.h"
-#include <zpkg/utility.h>
-#include <fcntl.h>
+#ifndef ZIO_UTILITY_H_
+#define ZIO_UTILITY_H_
 
 namespace zio{
 
-void fd_control::make_non_blocking(io_fd_t fd){
-#ifdef Z_SYS_WINDOWS
-    u_long nonblock = 1;
-    const int rc = ioctlsocket (fd, FIONBIO, &nonblock);
-#elif Z_SYS_LINUX
-    int flags = ::fcntl (fd, F_GETFL, 0);
-    if (flags < 0)
-        flags = 0;
-    const int rc = ::fcntl (fd, F_SETFL, flags | O_NONBLOCK);
+// io used fd defaile
+#if defined _WIN32
+// Windows uses a pointer-sized unsigned integer to store the socket fd.
+#if defined _WIN64
+typedef unsigned __int64 io_fd_t;
+#else
+typedef unsigned int io_fd_t;
 #endif
-    Z_ASSERT(rc >= 0);
-}
+#else
+typedef int io_fd_t;
+#endif
 
-void fd_control::make_close_on_exec(io_fd_t fd){
-#ifdef Z_SYS_LINUX
-    int flags = fcntl(fd, F_GETFD);
-    if(flags < 0){
-        flags =0;
-    }
-    const int rc = ::fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
-    Z_ASSERT(rc >= 0);
-#endif
-}
+enum{
+    // invalid io fd
+    invalid_io_fd_t = -1
+};
+
+class fd_control{
+public:
+    static void make_non_blocking(io_fd_t fd);
+    static void make_close_on_exec(io_fd_t fd);
+};
+
+class socket_control{
+public:
+    static void make_tcp_no_delay(io_fd_t fd);
+};
+
+enum class socket_family_t{
+    
+};
+
+enum class socket_type_t{
+
+};
+
+
 
 };//!namespace zio
+
+#endif//!ZIO_UTILITY_H_

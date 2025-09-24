@@ -29,17 +29,18 @@
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
+#include "wake_up.h"
 
-#include "wake_up_pipe.h"
-#include "io_loop_impl.h"
 #include <unistd.h>
 #include <zlog/log.h>
 #include "uv_io_error.h"
-#include "io_utility.h"
+#include "utility.h"
+
 namespace zio{
 
-wake_up_pipe_t::wake_up_pipe_t(io_poller_t* poller,io_loop_impl* loop_impl)
-    :poller_(poller),loop_impl_(loop_impl),poll_handle_(nullptr)
+
+wake_up_pipe_t::wake_up_pipe_t(event_loop_impl* loop_impl)
+    :loop_impl_(loop_impl),poll_handle_(nullptr)
 {
     pipe_fd_[0] = invalid_io_fd_t;
     pipe_fd_[1] = invalid_io_fd_t;
@@ -76,7 +77,7 @@ void wake_up_pipe_t::in_event(){
         zlog_warn("zio:wake up pipe invalid,reopen it");
         re_open();
         // add event poll to poller
-        poll_handle_ = poller_->add_fd(pipe_fd_[0],event_read,this);
+        poll_handle_ = loop_impl_->poller()->add_fd(pipe_fd_[0],EVENT_READ,this);
     }
 
     // wake for loop
@@ -98,12 +99,12 @@ void wake_up_pipe_t::re_open(){
     fd_control::make_close_on_exec(pipe_fd_[1]);
 
     // add to poller
-    poll_handle_ = poller_->add_fd(pipe_fd_[0],event_read,this);
+    poll_handle_ = loop_impl_->poller()->add_fd(pipe_fd_[0],EVENT_READ,this);
 }
 
 void wake_up_pipe_t::close(){
     if(poll_handle_){
-        poller_->rm_fd(poll_handle_);
+        loop_impl_->poller()->rm_fd(poll_handle_);
         poll_handle_ = nullptr;
     }
     if(pipe_fd_[0] != invalid_io_fd_t){
@@ -115,4 +116,5 @@ void wake_up_pipe_t::close(){
         pipe_fd_[1] = invalid_io_fd_t;
     }
 }
+
 };//!namespace zio

@@ -29,33 +29,39 @@
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
-#ifndef ZIO_IO_UTILITY_H_
-#define ZIO_IO_UTILITY_H_
 
-#include <zio/io_ctx.h>
+#ifndef ZIO_EVENT_LOOP_IMPL_H_
+#define ZIO_EVENT_LOOP_IMPL_H_
+
+#include <map>
+#include <mutex>
+#include "events.h"
 
 namespace zio{
+using shared_timer_task = std::shared_ptr<time_after_task>;
+class wake_up_pipe_t;
 
-enum class socket_family_t{
-    
-};
-
-enum class socket_type_t{
-
-};
-
-class fd_control{
+class event_loop_impl{
 public:
-    static void make_non_blocking(io_fd_t fd);
-    static void make_close_on_exec(io_fd_t fd);
-};
+    event_loop_impl();
+    ~event_loop_impl();
 
-class socket_control{
-public:
-    static void make_tcp_no_delay(io_fd_t fd);
-    
+    event_poller_t* poller() const;
+    void run();
+    void async(Func&& func);
+    // run in loop thread to wake up thread
+    void on_wake_up();
+    void add_time_task(const shared_timer_task& task);
+    int execute_time_after_task();
+
+private:
+    event_poller_t* poller_ = nullptr;
+    wake_up_pipe_t* wake_up_ = nullptr;
+    std::mutex task_mtx_;
+    std::vector<Func> async_tasks_;
+    std::multimap<z_time_t, shared_timer_task> time_after_tasks_;
 };
 
 };//!namespace zio
 
-#endif//!ZIO_IO_UTILITY_H_
+#endif//!ZIO_EVENT_LOOP_IMPL_H_

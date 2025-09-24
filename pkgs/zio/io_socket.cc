@@ -89,10 +89,10 @@ static int sk_ip_protocol_native(io_socket_t::type _type){
     return IPPROTO_IP;
 }
 
-io_socket_t* io_socket_t::create(io_loop_t* loop,io_fd_t fd){
+io_socket_t* io_socket_t::create(event_loop_t* loop,io_fd_t fd){
     return new io_socket_t(loop,fd);
 }
-io_socket_t* io_socket_t::create(io_loop_t* loop,family _family,type _type){
+io_socket_t* io_socket_t::create(event_loop_t* loop,family _family,type _type){
     io_fd_t sk_fd = ::socket(sk_family_native(_family),sk_type_native(_type),0);
     if(sk_fd == invalid_io_fd_t){
         zlog("zio:create socket error for{}",uv_strerror(uv_last_error()));
@@ -101,14 +101,14 @@ io_socket_t* io_socket_t::create(io_loop_t* loop,family _family,type _type){
     return new io_socket_t(loop,sk_fd);
 }
 
-io_socket_t::io_socket_t(io_loop_t* loop,family _family,type _type):poller_loop_(loop){
+io_socket_t::io_socket_t(event_loop_t* loop,family _family,type _type):poller_loop_(loop){
     socket_fd_ = ::socket(sk_family_native(_family),sk_type_native(_type),0);
     if(socket_fd_ == invalid_io_fd_t){
 
     }
 }
 
-io_socket_t::io_socket_t(io_loop_t* loop,io_fd_t fd)
+io_socket_t::io_socket_t(event_loop_t* loop,io_fd_t fd)
     :socket_fd_(fd),poller_loop_(loop){
     Z_ASSERT(socket_fd_ != invalid_io_fd_t);
     Z_ASSERT(poller_loop_);

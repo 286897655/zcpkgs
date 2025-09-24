@@ -32,8 +32,8 @@ target_link_libraries(fw zpkg pthread)
 
 add_executable(test_template test_template.cpp)
 
-add_executable(test_zio_loop test_zio_loop.cpp)
-target_link_libraries(test_zio_loop zio)
+add_executable(test_event_loop test_event_loop.cpp)
+target_link_libraries(test_event_loop zio)
 
 add_executable(small_test small_test.cc )
 target_link_libraries(small_test zpkg)

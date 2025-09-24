@@ -39,7 +39,7 @@ namespace zio{
 
 class tcp_client : public i_address{
 public:
-    explicit tcp_client(io_loop_t* loop);
+    explicit tcp_client(event_loop_t* loop);
     virtual ~tcp_client();
 
     

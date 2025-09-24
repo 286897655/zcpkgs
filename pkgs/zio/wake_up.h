@@ -29,19 +29,19 @@
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
+#ifndef ZIO_WAKE_UP_H_
+#define ZIO_WAKE_UP_H_
 
-#ifndef ZIO_WAKE_UP_PIPE_H_
-#define ZIO_WAKE_UP_PIPE_H_
-
-#include "io_ctx.h"
+#include "events.h"
+#include "event_loop_impl.h"
 
 namespace zio{
 
 // 先用传统pipe实现方式，后续考虑改为 eventfd方式，eventfd方式windows不支持
-class wake_up_pipe_t final: public poll_event_handler{
+class wake_up_pipe_t final: public virtual event_poll_handler{
 public:
-    explicit wake_up_pipe_t(io_poller_t* poller,io_loop_impl* loop_impl);
-    ~wake_up_pipe_t();
+    explicit wake_up_pipe_t(event_loop_impl* loop_impl);
+    virtual ~wake_up_pipe_t();
 
     void wake_up();
 protected:
@@ -52,14 +52,16 @@ private:
     void close();
 
 private:
-    io_poller_t* poller_;
-    io_loop_impl* loop_impl_;
+    event_loop_impl* loop_impl_;
     poll_handle_t poll_handle_;
     // 0 for read ,1 for write
     io_fd_t pipe_fd_[2];
 };
 
+class wake_up_eventfd_t : public virtual event_poll_handler{
+
+};
 
 };//!namespace zio
 
-#endif//!ZIO_WAKE_UP_PIPE_H_
+#endif//!ZIO_WAKE_UP_H_

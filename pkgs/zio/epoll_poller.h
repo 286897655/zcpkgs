@@ -38,7 +38,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "io_ctx.h"
+#include "events.h"
 
 namespace zio{
 
@@ -56,12 +56,11 @@ struct epoll_entity_t;
 class epoll_poller{
 public:
     static epoll_poller* create();
-private:
-    explicit epoll_poller(epoll_handle handle);
 public:
+    explicit epoll_poller(epoll_handle handle);
     ~epoll_poller();
 
-    poll_handle_t add_fd(io_fd_t fd,int poll_event,poll_event_handler* handler);
+    poll_handle_t add_fd(io_fd_t fd,int poll_event,event_poll_handler* handler);
     void rm_fd(poll_handle_t handle);
     void set_in_event(poll_handle_t handle);
     void reset_in_event(poll_handle_t handle);
