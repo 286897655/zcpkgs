@@ -1,3 +1,5 @@
+#pragma once
+
 /** 
  * @copyright Copyright © 2020-2025 code by zhaoj
  * 
@@ -34,6 +36,66 @@
 #define ZPKG_MEMORY_HPP_
 
 #include <memory>
+
+// linux <endian.h> defines
+#if BYTE_ORDER == LITTLE_ENDIAN
+#define Z_LITTLE_ENDIAN_HOST
+#elif BYTE_ORDER == BIG_ENDIAN
+#define Z_BIG_ENDIAN_HOST
+#endif
+
+/**
+ * bswap 
+ * byte swap routine
+*/
+#define Z_BSWAP16C(x) (((x) << 8 & 0xFF00)  | ((x) >> 8 & 0x00FF))
+#define Z_BSWAP32C(x) (Z_BSWAP16C(x) << 16 | Z_BSWAP16C((x) >> 16))
+#define Z_BSWAP64C(x) (Z_BSWAP32C(x) << 32 | Z_BSWAP32C((x) >> 32))
+#define Z_BSWAPC(s, x) Z_BSWAP##s##C(x)
+
+inline uint16_t z_bswap16_c(uint16_t x){
+    x = (x>>8) | (x<<8);
+    return x;
+};
+
+inline uint32_t z_bswap32_c(uint32_t x){
+    return Z_BSWAP32C(x);
+};
+
+inline uint64_t z_bswap64_c(uint64_t x){
+    return Z_BSWAP64C(x);
+};
+
+// be2he ... big-endian to host-endian
+// le2he ... little-endian to host-endian
+
+#ifdef Z_LITTLE_ENDIAN_HOST
+#define z_be2he16(x) z_bswap16_c(x)
+#define z_be2he32(x) z_bswap32_c(x)
+#define z_be2he64(x) z_bswap64_c(x)
+#define z_le2he16(x) (x)
+#define z_le2he32(x) (x)
+#define z_le2he64(x) (x)
+#define Z_BE2HEC(s,x) Z_BSWAPC(s, x)
+#define Z_LE2HEC(s,x) (x)
+#elif defined Z_BIG_ENDIAN_HOST
+#define z_be2he16(x) (x)
+#define z_be2he32(x) (x)
+#define z_be2he64(x) (x)
+#define z_le2he16(x) z_bswap16_c(x)
+#define z_le2he32(x) z_bswap32_c(x)
+#define z_le2he64(x) z_bswap64_c(x)
+#define Z_BE2HEC(s,x) (x)
+#define Z_LE2HEC(s,x) Z_BSWAPC(s, x)
+#endif
+
+#define Z_BE2HE16C(x) Z_BE2HEC(16, x)
+#define Z_BE2HE32C(x) Z_BE2HEC(32, x)
+#define Z_BE2HE64C(x) Z_BE2HEC(64, x)
+#define Z_LE2HE16C(x) Z_BE2HEC(16, x)
+#define Z_LE2HE32C(x) Z_BE2HEC(32, x)
+#define Z_LE2HE64C(x) Z_BE2HEC(64, x)
+
 
 /*
 * R/W means read/write, B/L means big/little/native endianness.

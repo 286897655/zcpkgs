@@ -110,4 +110,31 @@ std::string times::fmt_now_s(const char* fmt){
     return buffer;
 }
 
+std::time_t ctime::utc_timet(){
+    return ::time(NULL);
+}
+
+std::tm ctime::timet2tm(std::time_t time_tt){
+    std::tm tm;
+#ifdef _WIN32
+    ::gmtime_s(&tm, &time_tt);
+#else
+    ::gmtime_r(&time_tt, &tm);
+#endif
+    return tm;
+}
+
+std::time_t ctime::tm2timet(std::tm* tm_tt){
+    return ::timegm(tm_tt);
+}
+
+std::string ctime::fmt_timet(std::time_t time_tt,const char* fmt){
+    std::tm tm_snapshot = timet2tm(time_tt);
+    char buffer[1024];
+    auto success = ::strftime(buffer, sizeof(buffer), fmt, &tm_snapshot);
+    if (0 == success)
+        return std::string(fmt);
+    return buffer;
+}
+
 };//!namespace zpkg

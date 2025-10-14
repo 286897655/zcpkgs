@@ -1,5 +1,3 @@
-#pragma once
-
 /** 
  * @copyright Copyright © 2020-2025 code by zhaoj
  * 
@@ -29,19 +27,27 @@
 
  /**
  * @author zhaoj 286897655@qq.com
- * @brief 
+ * @brief time test series
  */
 
-#ifndef ZPKG_BASE64_H_
-#define ZPKG_BASE64_H_
+#include <zlog/log.h>
+#include <zpkg/times.h>
 
-#include <string>
+using namespace zpkg;
 
-namespace zpkg{
+int main(int argc,char** argv){
+    zlog::logger::create_defaultLogger();
 
-std::string base64_encode(const std::string& input);
-std::string base64_decode(const std::string& input);
+    std::time_t now_time_t = std::time(NULL);
+    // 直接打印应该比当前时间小8小时
+    zlog("now_time_t fmt:{}",ctime::fmt_time_t(now_time_t));
+    // 打印本地时间
+    zlog("now local time:{}",times::fmt_now_s());
 
-};//!namespace zpkg
-
-#endif //!ZPKG_BASE64_H_
+    // 通过gettimeofday获取秒和毫秒
+    z_time_t now_get = times::system_clock_ms();// 也是utc标准时间
+    time_t now_get_s = now_get / 1000;
+    int now_get_ms = now_get % 1000;
+    zlog("now_get_s fmt:{}",ctime::fmt_time_t(now_get_s));
+    zlog("now_get_ms :{}",now_get_ms);
+}

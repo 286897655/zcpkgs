@@ -1,3 +1,5 @@
+#pragma once
+
 /** 
  * @copyright Copyright © 2020-2025 code by zhaoj
  * 
@@ -34,6 +36,8 @@
 #define ZPKG_TIMES_H_
 
 #include <string>
+#include <ctime>
+#include <chrono>
 
 using z_time_t = uint64_t;
 
@@ -65,6 +69,7 @@ public:
     static z_time_t steady_clock_us();
     static z_time_t steady_clock_ms();
 
+    // 通过gettimeofday获取utc时间,是utc标准时间无时区
     static z_time_t system_clock_us();
     static z_time_t system_clock_ms();
 
@@ -120,6 +125,15 @@ public:
 private:
     z_time_t created_;
     z_time_t begin_;
+};
+
+/// @brief helper function for ctime
+class ctime{
+public:
+    static std::time_t utc_timet();
+    static std::tm timet2tm(std::time_t time_tt);
+    static std::time_t tm2timet(std::tm* tm_tt);
+    static std::string fmt_timet(std::time_t time_tt,const char* fmt = "%Y-%m-%d %H:%M:%S");
 };
 
 };//!namespace zpkg

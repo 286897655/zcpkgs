@@ -32,16 +32,47 @@
  * @brief 
  */
 
-#ifndef ZPKG_BASE64_H_
-#define ZPKG_BASE64_H_
+#ifndef ZPKG_ICLI_H_
+#define ZPKG_ICLI_H_
 
 #include <string>
+#include <unordered_map>
+#include <vector>
+#include <functional>
 
 namespace zpkg{
 
-std::string base64_encode(const std::string& input);
-std::string base64_decode(const std::string& input);
+/**
+ * interactive cli component
+*/
 
-};//!namespace zpkg
+class icli{
+public:
+    explicit icli(const std::string& prompt = "> ");
+    ~icli() =default;
 
-#endif //!ZPKG_BASE64_H_
+    using command_handler = std::function<void(const std::vector<std::string>& args)>;
+    struct command_data
+    {
+        command_handler handler;
+        std::string help;
+    };
+    
+    void add_commmand(const std::string& command,const std::string& help,command_handler command_call);
+
+    void interactive();
+
+private:
+    void show_help(const std::vector<std::string>& args);
+    void show_all_help();
+    void quit();
+
+private:
+    const std::string prompt_;
+    std::unordered_map<std::string, command_data> commands_;
+    bool running_;
+};
+
+};
+
+#endif//!ICLI

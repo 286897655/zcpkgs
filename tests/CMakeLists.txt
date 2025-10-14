@@ -43,3 +43,9 @@ target_link_libraries(test_log zpkg)
 
 add_executable(thread_priority thread_priority.cc)
 target_link_libraries(thread_priority zpkg pthread)
+
+add_executable(hash_test hash_test.cc)
+target_link_libraries(hash_test zpkg pthread)
+
+add_executable(time_test time_test.cc)
+target_link_libraries(time_test zpkg pthread)

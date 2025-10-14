@@ -600,6 +600,13 @@ std::string CRC32::operator()(const std::string& text)
 }
 
 int main(int argc,char** argv){
+    char buf[21] = {0};
+    buf[0]='a';
+    buf[1]='b';
+    std::string str_buf(buf);
+    std::cout << "str_buf:" << str_buf << " size:"<< str_buf.size() << std::endl;
+    std::string str_size_buf(buf,sizeof(buf));
+    std::cout << "str_size_buf:" << str_size_buf << " size:"<< str_size_buf.size() << std::endl;
     // test fmt time
     std::cout << zpkg::times::fmt_now_s() << std::endl;
     std::cout << zpkg::times::fmt_now_s("%Y-%m-%d-%H-%M-%S") << std::endl;
