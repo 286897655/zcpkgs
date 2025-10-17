@@ -1,10 +1,12 @@
+#pragma once
+
 /** 
- * @copyright Copyright © 2020-2025 code by zhaoj
+ * @copyright Copyright © 2020-2025 zhaoj
  * 
  * LICENSE
- * 
- * MIT License
  *
+ * MIT License
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -22,32 +24,50 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
+ * 
  */
 
- /**
+/**
  * @author zhaoj 286897655@qq.com
- * @brief time test series
+ * @brief 
  */
 
-#include <zlog/log.h>
-#include <zpkg/times.h>
+#ifndef ZAV_PROTO_ONVIF_H_
+#define ZAV_PROTO_ONVIF_H_
 
-using namespace zpkg;
+#include <zpkg/utility.h>
 
-int main(int argc,char** argv){
-    zlog::logger::create_defaultLogger();
+namespace zav{
 
-    std::time_t now_time_t = std::time(NULL);
-    // 直接打印应该比当前时间小8小时
-    zlog("now_time_t fmt:{}",ctime::fmt_timet(now_time_t));
-    // 打印本地时间
-    zlog("now local time:{}",times::fmt_now_s());
+namespace onvif{
 
-    // 通过gettimeofday获取秒和毫秒
-    z_time_t now_get = times::system_clock_ms();// 也是utc标准时间
-    time_t now_get_s = now_get / 1000;
-    int now_get_ms = now_get % 1000;
-    zlog("now_get_s fmt:{}",ctime::fmt_timet(now_get_s));
-    zlog("now_get_ms :{}",now_get_ms);
-}
+class device_service : public zpkg::apply_shared<device_service>{
+public:
+    std::string xaddr() const;
+
+private:
+
+};
+class media_service;
+class media2_service;
+
+};
+
+class TinyOnvif{
+
+};
+
+// class onvif_device{
+// public:
+//     onvif_device(const std::stirng& id,const std::string& usr,const std::string)
+// public:
+//     std::string id;
+//     std::string xaddr;
+//     std::string usr;
+//     std::string pwd;
+
+// };
+
+};//!namespace zav
+
+#endif//!ZAV_PROTO_ONVIF_H_

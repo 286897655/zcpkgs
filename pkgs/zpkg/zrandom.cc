@@ -27,27 +27,31 @@
 
  /**
  * @author zhaoj 286897655@qq.com
- * @brief time test series
+ * @brief 
  */
 
-#include <zlog/log.h>
-#include <zpkg/times.h>
+// #include "zrandom.h"
 
-using namespace zpkg;
+// namespace zpkg{
 
-int main(int argc,char** argv){
-    zlog::logger::create_defaultLogger();
+// zrandom::zrandom(){
 
-    std::time_t now_time_t = std::time(NULL);
-    // 直接打印应该比当前时间小8小时
-    zlog("now_time_t fmt:{}",ctime::fmt_timet(now_time_t));
-    // 打印本地时间
-    zlog("now local time:{}",times::fmt_now_s());
+// }
 
-    // 通过gettimeofday获取秒和毫秒
-    z_time_t now_get = times::system_clock_ms();// 也是utc标准时间
-    time_t now_get_s = now_get / 1000;
-    int now_get_ms = now_get % 1000;
-    zlog("now_get_s fmt:{}",ctime::fmt_timet(now_get_s));
-    zlog("now_get_ms :{}",now_get_ms);
-}
+// void zrandom::uniform(){
+
+// }
+
+// int zrandom::next_int(){
+
+// }
+
+// std::string zrandom::generate_string(){
+
+// }
+
+// std::string zrandom::generate_string(const std::string& string_set){
+
+// }
+
+// };//!namespace zpkg

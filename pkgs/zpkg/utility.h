@@ -132,20 +132,6 @@ protected:
   nomovecopy& operator=(const nomovecopy&) = delete;
 };
 
-/**
- * template class for singleton instance
-*/
-template<typename zclass>
-class singleton_t{
-public:
-    template<typename ...Args>
-    static zclass* instance(Args &&... args){
-        static zclass singleton_instance(std::forward<Args>(args)...);
-
-        return &singleton_instance;
-    }
-};
-
 };//!namespace zpkg
 
 #endif //!ZPKG_UTILITY_H_

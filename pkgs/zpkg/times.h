@@ -63,6 +63,12 @@ enum{
     NSEC_PER_MSEC = NSEC_PER_USEC * USEC_PER_MSEC, // 1毫秒1000000纳秒
 };
 
+enum ETimePrecision{
+    USEC_Precision = 1,
+    MSEC_Precision = 1000,
+    SEC_Precision  = 1000 * MSEC_Precision,
+};
+
 class times{
 public:
     static z_time_t steady_clock_ns();

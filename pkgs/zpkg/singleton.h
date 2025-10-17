@@ -1,3 +1,5 @@
+#pragma once
+
 /** 
  * @copyright Copyright © 2020-2025 code by zhaoj
  * 
@@ -27,27 +29,46 @@
 
  /**
  * @author zhaoj 286897655@qq.com
- * @brief time test series
+ * @brief 
  */
 
-#include <zlog/log.h>
-#include <zpkg/times.h>
+#ifndef ZPKG_SINGLETON_H_
+#define ZPKG_SINGLETON_H_
 
-using namespace zpkg;
+#include <utility> //std::forward
 
-int main(int argc,char** argv){
-    zlog::logger::create_defaultLogger();
+namespace zpkg{
 
-    std::time_t now_time_t = std::time(NULL);
-    // 直接打印应该比当前时间小8小时
-    zlog("now_time_t fmt:{}",ctime::fmt_timet(now_time_t));
-    // 打印本地时间
-    zlog("now local time:{}",times::fmt_now_s());
+template<typename NoArgClass>
+class NoArgSingleton{
+public:
+    static NoArgClass& Instance(){
+        static NoArgClass noArgClass;
+        return noArgClass;
+    }
+};
 
-    // 通过gettimeofday获取秒和毫秒
-    z_time_t now_get = times::system_clock_ms();// 也是utc标准时间
-    time_t now_get_s = now_get / 1000;
-    int now_get_ms = now_get % 1000;
-    zlog("now_get_s fmt:{}",ctime::fmt_timet(now_get_s));
-    zlog("now_get_ms :{}",now_get_ms);
-}
+template<typename ArgsClass>
+class ArgsSingleton{
+public:
+    template<typename ...Args>
+    static ArgsClass* CreateInstance(Args &&... args){
+        if(!instance_){
+            instance_ = new ArgsClass(std::forward<Args>(args)...);
+        }
+        return instance_;
+    }
+
+    static ArgsClass* Instance(){
+        return instance_;
+    }
+private:
+    static ArgsClass* instance_;
+};
+
+template<typename ArgsClass>
+ArgsClass* ArgsSingleton<ArgsClass>::instance_ = nullptr;
+
+};//!namespace zpkg
+
+#endif //!ZPKG_SINGLETON_H_

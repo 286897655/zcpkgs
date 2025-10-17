@@ -599,7 +599,9 @@ std::string CRC32::operator()(const std::string& text)
   return getHash();
 }
 
+
 int main(int argc,char** argv){
+
     char buf[21] = {0};
     buf[0]='a';
     buf[1]='b';
