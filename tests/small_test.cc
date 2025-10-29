@@ -600,8 +600,16 @@ std::string CRC32::operator()(const std::string& text)
 }
 
 
-int main(int argc,char** argv){
+#include "smal_test.h"
+#include "small_a.h"
 
+int main(int argc,char** argv){
+    CNST_OUT();
+
+    std::cout << Cnst::STR_CNST << std::endl;
+    std::cout << Cnst::INT_CNST << std::endl;
+
+    return 0;
     char buf[21] = {0};
     buf[0]='a';
     buf[1]='b';

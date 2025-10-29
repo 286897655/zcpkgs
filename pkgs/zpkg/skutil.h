@@ -56,6 +56,11 @@ enum class socket_end_t{
     SOCKET_END_PEER
 };
 
+class skutil{
+public:
+    static void split_ip_colon_port(const std::string& addr,std::string* ip,int* port);
+};
+
 namespace socket{
 static constexpr const char* kSOCKET_TYPE_STRING[4] = {"UNKNOWN","TCP","UDP","RAW"};
 

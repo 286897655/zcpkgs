@@ -1,3 +1,6 @@
+# 接口要求
+    
+
 # 接口示例与说明
 
 # onvif http1.1请求的header
@@ -17,8 +20,10 @@ Content-Length: 205
 
 需要通过GetSystemTimeAndDate定期心跳来获取时间差 在需要认证的接口上需要时间差来计算正确的nonce
 
-# webservice 认证标准
+# webservice 认证标准 (WS-UsernameToken)
 Password_Digest = Base64 ( SHA-1 ( nonce + created + password ) )  
+# Http digest 认证标准(RFC2617)
+先通过GetDeviceInformation不认证获取摘要认证的方法
 
 # response 大华response
 HTTP/1.1 200 OK
@@ -113,3 +118,27 @@ Connection: close
     </tds:GetSystemDateAndTimeResponse>
   </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
+
+# 未认证或者认证错误响应示例
+
+HTTP/1.1 400 Bad Request
+Content-Type: application/soap+xml; charset=utf-8
+Connection: close
+Content-Length: 659
+
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<s:Envelope xmlns:sc="http://www.w3.org/2003/05/soap-encoding" xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:ter="http://www.onvif.org/ver10/error" xmlns:wsnt="http://docs.oasis-open.org/wsn/b-2" xmlns:wsrf-bf="http://docs.oasis-open.org/wsrf/bf-2" xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery">
+  <s:Body>
+    <s:Fault>
+      <s:Code>
+        <s:Value>s:Sender</s:Value>
+        <s:Subcode>
+          <s:Value>ter:NotAuthorized</s:Value>
+        </s:Subcode>
+      </s:Code>
+      <s:Reason>
+        <s:Text xml:lang="en">Sender not Authorized. Invalid username or password! You still have 15 attempt(s).</s:Text>
+      </s:Reason>
+    </s:Fault>
+  </s:Body>
+</s:Envelope>

@@ -10,6 +10,8 @@ project(zcpkgs)
 
 include (cmake/arch.cmake)
 include (cmake/buildtype.cmake)
+include (cmake/imports.cmake)
+
 if(BUILD_RELEASE)
     message(STATUS "Build RELEASE VERSION")
 else()

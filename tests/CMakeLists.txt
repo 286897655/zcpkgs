@@ -35,7 +35,7 @@ add_executable(test_template test_template.cpp)
 add_executable(test_event_loop test_event_loop.cpp)
 target_link_libraries(test_event_loop zio)
 
-add_executable(small_test small_test.cc )
+add_executable(small_test small_test.cc small_a.cc)
 target_link_libraries(small_test zpkg)
 
 add_executable(test_log test_log.cc)

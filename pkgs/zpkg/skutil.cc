@@ -43,6 +43,19 @@
 
 namespace zpkg{
 
+void skutil::split_ip_colon_port(const std::string& addr,std::string* ip,int* port){
+    *port = 0;
+    size_t pos = addr.find_last_of(":");
+    if(pos == std::string::npos){
+        *ip = addr;
+        return;
+    }
+    
+    *ip = addr.substr(0,pos);
+    std::string portstr = addr.substr(pos + 1);
+    *port = std::strtol(portstr.c_str(),nullptr,10);
+}
+
 namespace socket{
 socket_type_t type_of_str(const std::string& str_type)
 {
