@@ -84,6 +84,15 @@ inline std::string trim(std::string& s)
     return s;
 };
 
+/// @brief generate random string
+/// @param length 
+/// @param has_upper 
+/// @param has_lower 
+/// @param has_number 
+/// @param has_special 
+/// @return 
+std::string random_string(size_t length,bool has_upper = true,bool has_lower = true,bool has_number = true,bool has_special =false);
+
 /// @brief std::string replace all / part replace use std::string::replace
 /// @param origin 
 /// @param old_pattern 

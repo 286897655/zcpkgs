@@ -1,3 +1,5 @@
+#pragma once
+
 /** 
  * @copyright Copyright © 2020-2025 code by zhaoj
  * 

@@ -31,6 +31,7 @@
  */
 
 #include "onvif.h"
+#include <random>
 #include <zlog/log.h>
 #include <zpkg/times.h>
 #include <zpkg/base64.h>
@@ -166,6 +167,7 @@ namespace onvif{
     };
 }
 
+const char* soap::kSOAP_HTTP_CONTENT_TYPE = "application/soap+xml; charset=utf-8";
 std::string soap::format_soap_message(const std::string& message){
     tinyxml2::XMLDocument doc;
     doc.Parse(message.c_str());
@@ -310,17 +312,20 @@ public:
         if(querynode.empty()){
             return onvif_soap::MustUnderstand;
         }
-
+        onvif_device_infomation info;
         // tds:Manufacturer
-        proxy_->device_service_proxy_->device_info_->Manufacturer = doc.select_node("//tds:Manufacturer").node().child_value();
+        info.Manufacturer = doc.select_node("//tds:Manufacturer").node().child_value();
         // tds:Model
-        proxy_->device_service_proxy_->device_info_->Model = doc.select_node("//tds:Model").node().child_value();
+        info.Model = doc.select_node("//tds:Model").node().child_value();
         // tds:FirmwareVersion
-        proxy_->device_service_proxy_->device_info_->FirmwareVersion = doc.select_node("//tds:FirmwareVersion").node().child_value();
+        info.FirmwareVersion = doc.select_node("//tds:FirmwareVersion").node().child_value();
         // tds:SerialNumber
-        proxy_->device_service_proxy_->device_info_->SerialNumber = doc.select_node("//tds:SerialNumber").node().child_value();
+        info.SerialNumber = doc.select_node("//tds:SerialNumber").node().child_value();
         // tds:HardwareId
-        proxy_->device_service_proxy_->device_info_->HardwareId = doc.select_node("//tds:HardwareId").node().child_value();
+        info.HardwareId = doc.select_node("//tds:HardwareId").node().child_value();
+
+        // emit device event
+        proxy_->proxy_event_->on_device_info(info);
 
         return onvif_soap::OK;
     }
@@ -467,8 +472,38 @@ public:
         return xml_printer.CStr();
     };
 
+    /**
+     * @brief Get video source configurations response handler
+     * 
+     * This function processes the response message for getting video source configurations 
+     * in the ONVIF protocol. The current version has not implemented the specific functionality 
+     * and will throw a runtime exception when called.
+     * 
+     * @param content The response message content string
+     * @return onvif_soap Returns the processed SOAP object
+     * @throws std::runtime_error Throws "not unimplementation" exception when function is called
+     */    
     onvif_soap GetVideoSourceConfigurationsResponse(const std::string& content){
-        throw std::runtime_error("not unimplementation");
+        pugi::xml_document doc;
+        doc.load_string(content.c_str());
+        pugi::xpath_query query("//trt:GetVideoSourceConfigurationsResponse");
+        auto querynode = query.evaluate_node_set(doc);
+        if(querynode.empty()){
+            return onvif_soap::MustUnderstand;
+        }
+        // may be multi video source configuration
+        pugi::xpath_node_set node_sets = doc.select_nodes("//trt:Configurations");
+        onvif_video_source_configuration vsc;
+        for(pugi::xpath_node node : node_sets){
+            vsc.token = node.node().attribute("token").as_string();
+            vsc.view_mode = node.node().attribute("ViewMode").as_string();
+            vsc.name = node.node().child("tt:Name").text().as_string();
+            vsc.source_token = node.node().child("tt:SourceToken").text().as_string();
+
+            proxy_->proxy_event_->on_video_source_configuration(vsc);
+        }
+        proxy_->proxy_event_->on_video_source_configuration_complete();
+        return onvif_soap::OK;
     }
 
     std::string GetOSDsRequest(const std::string& vsctoken) const{
@@ -499,7 +534,31 @@ public:
     }
 
     onvif_soap GetOSDsResponse(const std::string& content){
-        throw std::runtime_error("not unimplementation");
+        pugi::xml_document doc;
+        doc.load_string(content.c_str());
+        pugi::xpath_query query("//trt:GetOSDsResponse");
+        auto querynode = query.evaluate_node_set(doc);
+        if(querynode.empty()){
+            return onvif_soap::MustUnderstand;
+        }
+
+        // tt:PlainText 
+        auto osds = doc.select_nodes("//trt:OSDs");
+        for(const auto& osd : osds){
+            pugi::xpath_query query("//tt:PlainText");
+            auto querynode = query.evaluate_node(osd);
+            if(querynode.node().empty()){
+                continue;
+            }
+            
+            // found PlainText
+            const std::string osd_text = querynode.node().child_value();
+            const std::string vsc_token = osd.node().child("tt:VideoSourceConfigurationToken").text().as_string();
+            proxy_->proxy_event_->on_osd(vsc_token,osd_text);
+            return onvif_soap::OK;
+        }
+        
+        return onvif_soap::DataEncodingUnknown;
     }
 
     std::string GetProfilesRequest() const{
@@ -526,7 +585,32 @@ public:
     }
 
     onvif_soap GetProfilesResponse(const std::string& content){
-        throw std::runtime_error("not unimplementation");
+        pugi::xml_document doc;
+        doc.load_string(content.c_str());
+        pugi::xpath_query query("//trt:GetProfilesResponse");
+        auto querynode = query.evaluate_node_set(doc);
+        if(querynode.empty()){
+            return onvif_soap::MustUnderstand;
+        }
+
+        auto profiles = doc.select_nodes("//trt:Profiles");
+        for(const auto& profile : profiles){
+            pugi::xpath_query query("//tt:VideoSourceConfiguration"); 
+            auto quernode = query.evaluate_node(profile);
+            if(quernode.node().empty()){
+                continue;
+            }
+
+            std::string vsc_token = quernode.node().attribute("token").as_string();
+
+            // found video source configure get token and name
+            std::string profile_token = profile.node().attribute("token").as_string();
+            std::string profile_name = profile.node().child("tt:Name").text().as_string();
+
+            proxy_->proxy_event_->on_media_profile(vsc_token,profile_token,profile_name);
+        }
+        proxy_->proxy_event_->on_media_profile_complete();
+        return onvif_soap::OK;
     }
 
     /**
@@ -586,15 +670,47 @@ public:
         return xml_printer.CStr();
     }
 
-    onvif_soap GetStreamUriResponse(const std::string& content){
-        throw std::runtime_error("not unimplementation");
+    onvif_soap GetStreamUriResponse(const std::string& profiletoken,const std::string& content){
+        pugi::xml_document doc;
+        doc.load_string(content.c_str());
+        pugi::xpath_query query("//trt:GetStreamUriResponse");
+        auto querynode = query.evaluate_node_set(doc);
+        if(querynode.empty()){
+            return onvif_soap::MustUnderstand;
+        }
+        auto media_uri = doc.select_node("//trt:MediaUri");
+        if(media_uri.node().empty()){
+            return onvif_soap::MustUnderstand;
+        }
+        std::string stream_uri = media_uri.node().child("tt:Uri").text().as_string();
+        proxy_->proxy_event_->on_meida_profile_streamuri(profiletoken,stream_uri);
+
+        return onvif_soap::OK;
     }
 
     ////////////////////media service///////////////////////////
 private:
+    /**
+     * @brief Add an empty SOAP header to the envelope
+     * 
+     * This function inserts a new empty header element into the provided SOAP envelope element.
+     * The header element uses the standard SOAP header tag name defined by `onvif::kSOAP_HEADER`.
+     * 
+     * @param envelope A pointer to the SOAP envelope XML element where the header will be added
+     */
     void soap_envolope_add_empty_header(tinyxml2::XMLElement* const envelope) const{
         envelope->InsertNewChildElement(onvif::kSOAP_HEADER);
     }
+    /**
+     * @brief Add WS-Security authentication header to SOAP envelope
+     * 
+     * This function constructs a WS-Security authentication header using UsernameToken 
+     * method to add user authentication information. The authentication information 
+     * includes username, password digest, nonce, and creation timestamp.
+     * 
+     * @param envelope Pointer to the SOAP envelope XML element where the authentication 
+     *                 header will be inserted
+     */
     void soap_envolope_add_ws_auth_header(tinyxml2::XMLElement* const envelope) const{
         tinyxml2::XMLElement* header = envelope->InsertNewChildElement(onvif::kSOAP_HEADER);
         header->SetAttribute(onvif::kSOAP_ENVELOPE_NAMESPACE,onvif::kSOAP_ENVELOPE_NAMESPACE_URI);
@@ -631,7 +747,8 @@ private:
     std::string xaddr_media_service_;
 };
 
-onvif_proxy::onvif_proxy(const std::string& usr,const std::string& pwd,const std::string& ip,int port,bool use_https){
+onvif_proxy::onvif_proxy(onvif_proxy_event* event,const std::string& usr,const std::string& pwd,const std::string& ip,int port,bool use_https)
+    :proxy_event_(event){
     device_params_ = std::make_unique<onvif_device_params>();
     std::string http_prefix = "http://";
     if(port == 443 || use_https){
@@ -647,17 +764,13 @@ onvif_proxy::~onvif_proxy(){
 
 }
 
- void onvif_proxy::reset(){
+void onvif_proxy::reset(){
     tiny_ = std::make_unique<tiny_onvif>(this);
     device_service_proxy_ = std::make_unique<device_service_proxy>(this);
-    device_service_proxy_ ->device_info_ = std::make_unique<onvif_device_infomation>();
-    // default use ws username token
-    device_service_proxy_->device_info_->Authentication = OnvifAuth::WS_UsernameToken;
-
     device_service_proxy_ ->device_system_ = std::make_unique<onvif_device_system>();
     // TODO zhaoj 是否支持media_service 是否要根据GetServices信息判断呢？
     media_service_proxy_ = std::make_unique<media_service_proxy>(this);
- }
+}
 
 onvif_proxy::device_service_proxy* onvif_proxy::device_service(){
     return device_service_proxy_.get();
@@ -755,8 +868,8 @@ std::string onvif_proxy::media_service_proxy::proxy_GetStreamUri(const std::stri
     return proxy_->tiny_->GetStreamUriRequest(profiletoken);
 }
 
-onvif_soap onvif_proxy::media_service_proxy::parse_GetStreamUri(const std::string& content){
-    return proxy_->tiny_->GetStreamUriResponse(content);
+onvif_soap onvif_proxy::media_service_proxy::parse_GetStreamUri(const std::string& profiletoken,const std::string& content){
+    return proxy_->tiny_->GetStreamUriResponse(profiletoken,content);
 }
 
 

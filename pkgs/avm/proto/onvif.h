@@ -42,7 +42,7 @@
 namespace avm{
 
 struct soap{
-    static constexpr const char kSOAP_HTTP_CONTENT_TYP[] = "application/soap+xml; charset=utf-8";
+    static const char* kSOAP_HTTP_CONTENT_TYPE;
     static std::string format_soap_message(const std::string& message);
 };
 
@@ -160,6 +160,21 @@ struct onvif_device_system{
     std::time_t utc_diff;
 };
 
+// trt:Configurations
+struct onvif_video_source_configuration{
+    // attribute of ViewMode
+    std::string view_mode;
+    // attribute of token
+    std::string token;
+    // tt:Name
+    std::string name;
+    // tt:SourceToken
+    std::string source_token;
+    /**
+     * ignore other filed
+     */
+};
+
 // Authentication over HTTP and HTTPS
 // The services defined in this standard, whenever consumed overt HTTP and HTTPS, shall be protected using
 // digest authentication according to [RFC 2617] with the following exceptions.
@@ -199,8 +214,37 @@ enum OnvifAuth{
     Http_Digest = 1 << 2 // Http Digest md5 or sha256
 };
 
-class onvif_exception{
+class onvif_proxy_event{
+public:
+    /// @brief emit on device info
+    /// @param info 
+    virtual void on_device_info(const onvif_device_infomation& info) = 0;
 
+    /// @brief emit on get video source configuration
+    /// @param conf 
+    virtual void on_video_source_configuration(const onvif_video_source_configuration& conf) = 0;
+    
+    /// @brief emit on get video source configuration complete
+    virtual void on_video_source_configuration_complete() = 0;
+    
+    /// @brief emit on get osd of video source configuration
+    /// @param vsc_token 
+    /// @param osd 
+    virtual void on_osd(const std::string& vsc_token,const std::string& osd) = 0;
+
+    /// @brief emit on get media profile
+    /// @param vsc_token 
+    /// @param profile_token 
+    /// @param profile_name 
+    virtual void on_media_profile(const std::string& vsc_token,const std::string& profile_token,const std::string& profile_name) = 0;
+    
+    /// @brief emit on get meida profile complete
+    virtual void on_media_profile_complete() = 0;
+
+    /// @brief emit on get media profile stream uri
+    /// @param profile_token 
+    /// @param stream_uri 
+    virtual void on_meida_profile_streamuri(const std::string& profile_token,const std::string& stream_uri) = 0;
 };
 
 /**
@@ -212,7 +256,7 @@ public:
     // default 80 port and don't use https http://ip:80
     // if port is 443,use https https://ip:443
     // other port if use https https://ip:port
-    explicit onvif_proxy(const std::string& usr,const std::string& pwd,const std::string& ip,int port = 80,bool use_https = false);
+    explicit onvif_proxy(onvif_proxy_event* event, const std::string& usr,const std::string& pwd,const std::string& ip,int port = 80,bool use_https = false);
     // tiny_onvif pimpl pattern,onvif_proxy can't use default destructor
      ~onvif_proxy();
 
@@ -227,7 +271,6 @@ public:
     */
     class device_service_proxy{
     public:
-        std::unique_ptr<onvif_device_infomation> device_info_;
         std::unique_ptr<onvif_device_system> device_system_;
     public:
         explicit device_service_proxy(onvif_proxy* const proxy);
@@ -286,6 +329,10 @@ public:
         std::string proxy_GetVideoSources() const;
         onvif_soap parse_GetVideoSources(const std::string& content);
         std::string proxy_GetVideoSourceConfigurations() const;
+        /// @brief 
+        /// @param content 
+        /// @param vscs 
+        /// @return /
         onvif_soap parse_GetVideoSourceConfigurations(const std::string& content);
         // This operation lists all existing OSD configurations for the device. The device shall support the listing of existing
         // OSD configurations through the GetOSDs command
@@ -295,7 +342,7 @@ public:
         std::string proxy_GetProfiles() const;
         onvif_soap parse_GetProfiles(const std::string& content);
         std::string proxy_GetStreamUri(const std::string& profiletoken) const;
-        onvif_soap parse_GetStreamUri(const std::string& content);
+        onvif_soap parse_GetStreamUri(const std::string& profiletoken,const std::string& content);
     private:
         onvif_proxy* const proxy_;
     };
@@ -304,6 +351,7 @@ public:
 private:
     class tiny_onvif;
     std::unique_ptr<tiny_onvif> tiny_;
+    onvif_proxy_event* proxy_event_;
     std::unique_ptr<onvif_device_params> device_params_;
     std::unique_ptr<device_service_proxy> device_service_proxy_;
     std::unique_ptr<media_service_proxy> media_service_proxy_;

@@ -37,7 +37,37 @@
 #include <iomanip>
 
 namespace zpkg{
+
 namespace strings{
+
+std::string random_string(size_t length,bool has_upper,bool has_lower,bool has_number,bool has_special){
+    // chaset
+    std::string char_set;
+    if(has_upper){
+        char_set += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    }
+    if(has_lower){
+        char_set += "abcdefghijklmnopqrstuvwxyz";
+    }
+    if(has_number){
+        char_set += "0123456789";
+    }
+    if(has_special){
+        char_set += "!@#$%^&*()_-+=[]{}|;:,.<>?";
+    }
+    if(char_set.empty()){
+        return kstrings::kEmpty;
+    }
+    std::default_random_engine rng;
+    std::uniform_int_distribution<size_t> dist(0,char_set.size() - 1);
+
+    std::string result;
+    result.reserve(length);
+    for (size_t i = 0; i < length; ++i) {
+        result += char_set[dist(rng)];
+    }
+    return result;
+}
 
 std::vector<std::string> split(const std::string& origin,const char* delim)
 {
