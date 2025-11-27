@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.13.0)
 
 project(zcpkgs)
 
+set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+
 # |---------------------zcpkgs-------------------------|
 
 # |--------zpkg(zlog)----------|----zav----|----zio----|

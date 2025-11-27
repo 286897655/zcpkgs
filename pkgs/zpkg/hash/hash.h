@@ -37,50 +37,37 @@
 
 #include <string>
 
-namespace zpkg{
+namespace zpkg{ 
 
-namespace hash{
-
-enum algorithm{
-    MD5,
-    /**
-     * SHA-1 and SHA-256 (Secure Hash Algorithm) hash function implementations.
-     * - SHA-1: 160 bits
-     * - SHA-256: 256 bits, as a variant of SHA-2
-    */
-    SHA1 = 160,
-    SHA256 = 256
-};
-
-class sha final{
+class hash final{
 public:
-    explicit sha(algorithm algorithm);
-    ~sha();
+    /**
+     * @brief define hash algorithms
+     * md5
+     * sha1
+     * sha256
+     * 
+     */
+    enum algorithm{
+        MD5,
+        /**
+         * SHA-1 and SHA-256 (Secure Hash Algorithm) hash function implementations.
+         * - SHA-1: 160 bits
+         * - SHA-256: 256 bits, as a variant of SHA-2
+        */
+        SHA1 = 160,
+        SHA256 = 256
+    };
 
-    void update(const uint8_t* bytes,size_t byteSize);
-    void update(const std::string& str);
-
-    void reset(algorithm algorithm);
-
-    // result of hex string
-    std::string hash();
-    // result of binary buffer with \0 end
-    std::string hash_bin();
-
-    /// compute SHA of a memory block return with hex string
-    static std::string hash(algorithm algorithm,const uint8_t* bytes,size_t byteSize);
-    /// compute SHA of a memory block return binary buffer with \0 end
-    static std::string hash_bin(algorithm algorithm,const uint8_t* bytes,size_t byteSize);
-    /// compute SHA of a string, excluding final zero with hex string
-    static std::string hash(algorithm algorithm,const std::string& str);
-    /// compute SHA of a string, excluding final zero with binary buffer
+    // compute hash of a string, excluding final zero with hex string
+    static std::string hash_hex(algorithm algorithm,const std::string& str);
+    // compute hash of a memory block return with hex string
+    static std::string hash_hex(algorithm algorithm,const uint8_t* bytes,size_t byteSize);
+    // compute hash of a string, excluding final zero with binary buffer
     static std::string hash_bin(algorithm algorithm,const std::string& str);
-
-private:
-    struct SHA_CTX* sha_ctx_;
-};
+    // compute hash of a memory block return binary buffer with \0 end
+    static std::string hash_bin(algorithm algorithm,const uint8_t* bytes,size_t byteSize);
 };
 
-};//!namespace zpkg
-
+};//!namesapce zpkg
 #endif//!ZPKG_HASH_H_

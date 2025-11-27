@@ -29,35 +29,39 @@
 
  /**
  * @author zhaoj 286897655@qq.com
- * @brief 
+ * @brief sha1 and sha2 take from ffmpeg
  */
 
-#ifndef ZPKG_RANDOMS_H_
-#define ZPKG_RANDOMS_H_
+#ifndef ZPKG_HASH_SHA_H_
+#define ZPKG_HASH_SHA_H_
 
-#include <random>
+#include <zpkg/hash/hash.h>
+#include <cstdint>
 
 namespace zpkg{
 
-class Random{
-
-private:
-    std::default_random_engine rng_;
-    std::uniform_int_distribution<size_t> dist_;
+enum sha_algorithm {
+    SHA1 = hash::algorithm::SHA1,
+    SHA256 = hash::algorithm::SHA256
 };
 
-class Random32{
+class sha final{
+public:
+    explicit sha(sha_algorithm algorithm);
+    ~sha();
 
+    void update(const uint8_t* bytes,size_t byteSize);
+    void update(const std::string& str);
+
+    void reset(sha_algorithm algorithm);
+
+    // result of hex string
+    std::string hash_hex();
+    // result of binary buffer with \0 end
+    std::string hash_bin();
 private:
-    std::mt19937 rng32_;
+    struct SHA_CTX* sha_ctx_;
 };
+} //! namespace zpkg
 
-class Random64{
-
-private:
-    std::mt19937_64 rng64_;
-};
-
-}//!namesapce zpkg
-
-#endif//!ZPKG_RANDOMS_H_
+#endif //!ZPKG_HASH_SHA_H_

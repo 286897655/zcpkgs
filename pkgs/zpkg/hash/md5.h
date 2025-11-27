@@ -1,3 +1,5 @@
+#pragma once
+
 /** 
  * @copyright Copyright © 2020-2025 code by zhaoj
  * 
@@ -62,15 +64,14 @@ documentation and/or software.
 
 */
 
-#ifndef ZPKG_MD5_H_
-#define ZPKG_MD5_H_
+#ifndef ZPKG_HASH_MD5_H_
+#define ZPKG_HASH_MD5_H_
 
 #include <string>
 #include <iostream>
+#include <cstdint>
 
 namespace zpkg{
-    std::string md5(const std::string& str);
-
     // a small class for calculating MD5 hashes of strings or byte arrays
     // it is not meant to be fast or secure
     //
@@ -123,4 +124,4 @@ namespace zpkg{
     };
 }//!namespace zpkg
 
-#endif //!ZPKG_MD5_H_
+#endif //!ZPKG_HASH_MD5_H_

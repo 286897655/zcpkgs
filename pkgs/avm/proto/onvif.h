@@ -153,7 +153,6 @@ struct onvif_device_infomation{
     std::string FirmwareVersion;
     std::string SerialNumber;
     std::string HardwareId;
-    int Authentication;
 };
 struct onvif_device_system{
     // time diff of local
@@ -209,9 +208,12 @@ struct onvif_video_source_configuration{
 // be used.
 enum OnvifAuth{
     None = 0,
-    WS_UsernameToken = 1 << 0,//lagacy type
-    Http_Basic = 1 << 1,// Http Basic base64 
-    Http_Digest = 1 << 2 // Http Digest md5 or sha256
+    // lagacy type
+    WS_UsernameToken = 1 << 0,
+    // Http Basic base64 
+    Http_Basic = 1 << 1,
+    // Http Digest md5 or sha256
+    Http_Digest = 1 << 2 
 };
 
 class onvif_proxy_event{
@@ -304,11 +306,8 @@ public:
         ////////////////////System//////////////////////////////
         std::string proxy_GetSystemDateAndTime() const;
         onvif_soap parse_GetSystemDateAndTime(const std::string& content);
-        std::string proxy_GetDeviceInformation(bool with_wss) const;
+        std::string proxy_GetDeviceInformation() const;
         onvif_soap parse_GetDeviceInformation(const std::string& content);
-        std::string proxy_GetDeviceAuthentication() const;
-        onvif_soap parse_GetDeviceAuthentication(const std::string& header,const std::string& content);
-
         ////////////////////System//////////////////////////////
 
         ////////////////////Network//////////////////////////////

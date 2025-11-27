@@ -30,12 +30,12 @@
  * @brief 
  */
 
-#include "hash.h"
+#include "sha.h"
 #include "zpkg/utility.h"
 #include <string.h>
 
 namespace zpkg{
-namespace hash{
+
 /** SHA hash context */
 typedef struct SHA_CTX{
     uint8_t  digest_len;  ///< digest length in 32-bit words
@@ -171,8 +171,7 @@ static const uint32_t K256[64] = {
     T1 = blk(i); \
     ROUND256(a,b,c,d,e,f,g,h)
 
-static void sha256_transform(uint32_t *state, const uint8_t buffer[64])
-{
+static void sha256_transform(uint32_t *state, const uint8_t buffer[64]){
     unsigned int i, a, b, c, d, e, f, g, h;
     uint32_t block[64];
     uint32_t T1;
@@ -222,8 +221,7 @@ static void sha256_transform(uint32_t *state, const uint8_t buffer[64])
     state[7] += h;
 }
 
-
-sha::sha(algorithm algorithm){
+sha::sha(sha_algorithm algorithm){
     sha_ctx_ = new SHA_CTX();
     reset(algorithm);
 }
@@ -233,7 +231,7 @@ sha::~sha(){
     sha_ctx_ = nullptr;
 }
 
-void sha::reset(algorithm algorithm){
+void sha::reset(sha_algorithm algorithm){
     // 5 bytes 8 bytes
     sha_ctx_->digest_len = static_cast<uint32_t>(algorithm) >> 5;
     switch (algorithm)
@@ -300,7 +298,7 @@ std::string sha::hash_bin(){
     return std::string(buf);
 }
 
-std::string sha::hash() {
+std::string sha::hash_hex() {
     std::string str = hash_bin();
     std::ostringstream result;
 
@@ -313,29 +311,4 @@ std::string sha::hash() {
 
     return result.str();
 }
-
-std::string sha::hash(algorithm algorithm,const uint8_t* bytes,size_t byteSize){
-    sha sha(algorithm);
-    sha.update(bytes,byteSize);
-    return sha.hash();
-}
-
-std::string sha::hash_bin(algorithm algorithm,const uint8_t* bytes,size_t byteSize){
-    sha sha(algorithm);
-    sha.update(bytes,byteSize);
-    return sha.hash_bin();
-}
-
-std::string sha::hash(algorithm algorithm,const std::string& str){
-    sha sha(algorithm);
-    sha.update(reinterpret_cast<const uint8_t*>(str.c_str()),str.size());
-    return sha.hash();
-}
-
-std::string sha::hash_bin(algorithm algorithm,const std::string& str){
-    sha sha(algorithm);
-    sha.update(reinterpret_cast<const uint8_t*>(str.c_str()),str.size());
-    return sha.hash_bin();
-}
-};//!namesapce hash
 };//!namespace zpkg

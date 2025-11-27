@@ -64,10 +64,10 @@ documentation and/or software.
 
 */
 
-#include "zpkg/md5.h"
+#include "md5.h"
 #include <string.h>
 
-namespace zpkg{
+namespace zpkg {
     using namespace std;
 
     // Constants for MD5Transform routine.
@@ -391,11 +391,4 @@ namespace zpkg{
     }
 
     //////////////////////////////
-
-    std::string md5(const std::string& str)
-    {
-        MD5 md5 = MD5(str);
-
-        return md5.hexdigest();
-    }
 }//!namespace zpkg

@@ -38,7 +38,8 @@
 #include <zpkg/hash/hash.h>
 #include <tinyxml2/tinyxml2.h>
 #include <pugixml/pugixml.hpp>
-#include <llhttp/llhttp.h>
+#include <algorithm>
+#include <cctype>
 
 namespace avm{
 
@@ -157,7 +158,7 @@ namespace onvif{
             created_str = diff_str + std::string(mill_buffer);
         }
         // Password_Digest = Base64 ( SHA-1 ( nonce + created + password ) ) 
-        std::string pwd_digest = zpkg::base64_encode(zpkg::hash::sha::hash_bin(zpkg::hash::SHA1,(std::string(nonce_buffer)+created_str+pwd)));
+        std::string pwd_digest = zpkg::base64_encode(zpkg::hash::hash_bin(zpkg::hash::SHA1,(std::string(nonce_buffer)+created_str+pwd)));
         
         return std::make_unique<wsse_pwd_digest>(
                 wsse_pwd_digest{
@@ -276,7 +277,7 @@ public:
     }
 
     // READ_SYSTEM,should authentication
-    std::string GetDeviceInformationRequest(bool with_wss) const{
+    std::string GetDeviceInformationRequest() const{
         tinyxml2::XMLDocument doc;
         // insert xml declaration
         doc.InsertEndChild(doc.NewDeclaration());
@@ -285,13 +286,8 @@ public:
         doc.InsertEndChild(envelope_node);
         // set envelope attribute
         onvif::tds_soap_envelope_attr(envelope_node);
-        if(with_wss){
-            // <s:Header> add Auth Header
-            soap_envolope_add_ws_auth_header(envelope_node);
-        }else{
-            // <s:Header> empty soap header
-            soap_envolope_add_empty_header(envelope_node);
-        }
+        // <s:Header> add Auth Header
+        soap_envolope_add_ws_auth_header(envelope_node);
         
         //  <s:Body>
         //    <tds:GetDeviceInformation />
@@ -306,7 +302,7 @@ public:
 
     onvif_soap GetDeviceInformationResponse(const std::string& content){
         pugi::xml_document doc;
-        auto result = doc.load_string(content.c_str());
+        doc.load_string(content.c_str());
         pugi::xpath_query query("//tds:GetDeviceInformationResponse");
         auto querynode = query.evaluate_node_set(doc);
         if(querynode.empty()){
@@ -329,35 +325,7 @@ public:
 
         return onvif_soap::OK;
     }
-
-    // use GetDeviceInformation api with no auth to get auth type
-    std::string GetDeviceAuthenticationRequest() const{
-        tinyxml2::XMLDocument doc;
-        // insert xml declaration
-        doc.InsertEndChild(doc.NewDeclaration());
-        // envelope node
-        tinyxml2::XMLElement* envelope_node = doc.NewElement(onvif::kSOAP_ENVELOPE);
-        doc.InsertEndChild(envelope_node);
-        // set envelope attribute
-        onvif::tds_soap_envelope_attr(envelope_node);
-        // <s:Header> with no auth
-        soap_envolope_add_empty_header(envelope_node);
-        //  <s:Body>
-        //    <tds:GetDeviceInformation />
-        //  </s:Body>
-        envelope_node->InsertNewChildElement(onvif::kSOAP_BODY)->InsertNewChildElement("tds:GetDeviceInformation");
-
-        tinyxml2::XMLPrinter xml_printer;
-        doc.Print(&xml_printer);
-
-        return xml_printer.CStr();
-    }
-
-    onvif_soap GetDeviceAuthenticationResponse(const std::string& header,const std::string& content){
-        // 解析返回的header
-        throw std::runtime_error("unimplementation");
-    }
-
+    
     std::string GetServicesRequest(bool IncludeCapability) const{
         tinyxml2::XMLDocument doc;
         // insert xml declaration
@@ -595,13 +563,12 @@ public:
 
         auto profiles = doc.select_nodes("//trt:Profiles");
         for(const auto& profile : profiles){
-            pugi::xpath_query query("//tt:VideoSourceConfiguration"); 
-            auto quernode = query.evaluate_node(profile);
-            if(quernode.node().empty()){
+            // found video source configure
+            pugi::xml_node vsc_node = profile.node().child("tt:VideoSourceConfiguration");
+            if(vsc_node.empty()){
                 continue;
             }
-
-            std::string vsc_token = quernode.node().attribute("token").as_string();
+            std::string vsc_token = vsc_node.attribute("token").as_string();
 
             // found video source configure get token and name
             std::string profile_token = profile.node().attribute("token").as_string();
@@ -644,8 +611,8 @@ public:
         // <soap:Body>
         //     <GetStreamUri xmlns="http://www.onvif.org/ver10/media/wsdl">
         //         <StreamSetup>
-        //             <Stream>RTP-Unicast</Stream>
-        //             <Transport>
+        //             <Stream xmlns="http://www.onvif.org/ver10/schema">RTP-Unicast</Stream>
+        //             <Transport xmlns="http://www.onvif.org/ver10/schema">
         //                  <Protocol>RTSP</Protocol>
         //             </Transport>
         //         </StreamSetup>
@@ -654,16 +621,26 @@ public:
         // </soap:Body>
         auto getstreamurinode = envelope_node->InsertNewChildElement(onvif::kSOAP_BODY)->InsertNewChildElement("GetStreamUri");
         getstreamurinode->SetAttribute("xmlns","http://www.onvif.org/ver10/media/wsdl");
-        auto streamsetupnode = getstreamurinode->InsertNewChildElement("StreamSetup");
-        auto streamtypenode = streamsetupnode->InsertNewChildElement("Stream");
-        streamtypenode->SetText("RTP-Unicast");
-        auto protocolnode = streamsetupnode->InsertNewChildElement("Transport")->InsertNewChildElement("Protocol");
-        // use rtsp over tcp
-        protocolnode->SetText("RTSP");
-
-        auto profilenode = getstreamurinode->InsertNewChildElement("ProfileToken");
-        profilenode->SetText(profiletoken.c_str());
-
+        {
+            auto streamsetupnode = getstreamurinode->InsertNewChildElement("StreamSetup");
+            {
+                auto streamtypenode = streamsetupnode->InsertNewChildElement("Stream");
+                streamtypenode->SetText("RTP-Unicast");
+                streamtypenode->SetAttribute("xmlns","http://www.onvif.org/ver10/schema");
+            }
+            {
+                auto transportnode = streamsetupnode->InsertNewChildElement("Transport");
+                transportnode->SetAttribute("xmlns","http://www.onvif.org/ver10/schema");
+                {
+                    auto protocolnode = transportnode->InsertNewChildElement("Protocol");
+                    // use rtsp over tcp
+                    protocolnode->SetText("RTSP");
+                }
+            }
+            auto profilenode = getstreamurinode->InsertNewChildElement("ProfileToken");
+            profilenode->SetText(profiletoken.c_str());
+        }
+        
         tinyxml2::XMLPrinter xml_printer;
         doc.Print(&xml_printer);
 
@@ -818,19 +795,11 @@ onvif_soap onvif_proxy::device_service_proxy::parse_GetSystemDateAndTime(const s
     return proxy_->tiny_->GetSystemDateAndTimeResponse(content);
 }
 
-std::string onvif_proxy::device_service_proxy::proxy_GetDeviceInformation(bool with_wss) const{
-    return proxy_->tiny_->GetDeviceInformationRequest(with_wss);
+std::string onvif_proxy::device_service_proxy::proxy_GetDeviceInformation() const{
+    return proxy_->tiny_->GetDeviceInformationRequest();
 }
 onvif_soap onvif_proxy::device_service_proxy::parse_GetDeviceInformation(const std::string& content){
     return proxy_->tiny_->GetDeviceInformationResponse(content);
-}
-
-std::string onvif_proxy::device_service_proxy::proxy_GetDeviceAuthentication() const{
-    return proxy_->tiny_->GetDeviceAuthenticationRequest();
-}
-
-onvif_soap onvif_proxy::device_service_proxy::parse_GetDeviceAuthentication(const std::string& header,const std::string& content){
-    return proxy_->tiny_->GetDeviceAuthenticationResponse(header,content);
 }
 
 onvif_proxy::media_service_proxy::media_service_proxy(onvif_proxy* const proxy):proxy_(proxy){

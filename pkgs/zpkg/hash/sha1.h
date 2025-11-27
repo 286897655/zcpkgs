@@ -48,8 +48,9 @@
 // File created on: 2017.02.25
 
 // SHA1.h
+#ifndef ZPKG_HASH_SHA1_H
+#define ZPKG_HASH_SHA1_H
 
-#pragma once
 
 #include <cstdint>
 #include <iostream>
@@ -79,3 +80,5 @@ private:
 };
 
 }//namespace zpkg
+
+#endif//!ZPKG_HASH_SHA1_H

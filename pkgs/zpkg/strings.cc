@@ -35,11 +35,13 @@
 #include <zpkg/strings.h>
 #include <string.h>
 #include <iomanip>
+#include <random>
 
 namespace zpkg{
 
 namespace strings{
 
+// TODO zhaoj random string 和 random-hex放到randoms中去
 std::string random_string(size_t length,bool has_upper,bool has_lower,bool has_number,bool has_special){
     // chaset
     std::string char_set;
@@ -69,6 +71,18 @@ std::string random_string(size_t length,bool has_upper,bool has_lower,bool has_n
     return result;
 }
 
+std::string random_hex(size_t length){
+    static constexpr const char kHexChars[] = "0123456789abcdef";
+
+    std::mt19937 rng;
+    std::uniform_int_distribution<> dis(0, sizeof(kHexChars) - 1);
+    std::string ret;
+    ret.reserve(length);
+    for (size_t i = 0; i < length; ++i) {    
+        ret += kHexChars[dis(rng)];
+    }
+    return ret;
+}
 std::vector<std::string> split(const std::string& origin,const char* delim)
 {
     std::vector<std::string> ret;
@@ -99,6 +113,37 @@ std::string replace_all(const std::string& origin,const std::string& old_pattern
     }
 
     return ret_val;
+}
+
+std::string extract_field(const char* str,const char* start,const char* end,size_t length){
+    if(length == 0){
+        length = ::strlen(str);
+    }
+    if(!str || length == 0){
+        // null string or empty string return empty
+        return kstrings::kEmpty;
+    }
+    const char* message_start = str;
+    const char* message_end = str + length;
+    size_t len = 0;
+    if(start){
+        // none null start find
+        len = ::strlen(start);
+        message_start = ::strstr(message_start,start);
+        if(!message_start){
+            // start not found
+            return kstrings::kEmpty;
+        }
+    }
+    message_start += len;
+    if(end){
+        message_end = ::strstr(message_start,end);
+        if(!message_end){
+            return kstrings::kEmpty;
+        }
+    }
+    // found start end
+    return std::string(message_start,message_end);
 }
 
 }//!namespace strings

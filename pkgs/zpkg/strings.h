@@ -93,6 +93,11 @@ inline std::string trim(std::string& s)
 /// @return 
 std::string random_string(size_t length,bool has_upper = true,bool has_lower = true,bool has_number = true,bool has_special =false);
 
+/// @brief generate random hex string
+/// @param length 
+/// @return 
+std::string random_hex(size_t length);
+
 /// @brief std::string replace all / part replace use std::string::replace
 /// @param origin 
 /// @param old_pattern 
@@ -183,6 +188,8 @@ inline std::string strip_suffix(const std::string& str, const std::string& suffi
     else
         return str;
 }
+
+std::string extract_field(const char* str,const char* start = NULL,const char* end = NULL,size_t length = 0);
 
 /// @brief a simple from,but not effcient
 /// @tparam T 

@@ -602,8 +602,42 @@ std::string CRC32::operator()(const std::string& text)
 
 #include "smal_test.h"
 #include "small_a.h"
+#include <string.h>
+std::string extract_field(const char* str,const char* start,const char* end,size_t length){
+    if(length == 0){
+        length = ::strlen(str);
+    }
+    const char* message_start = str;
+    const char* message_end = str + length;
+    size_t len = 0;
+    if(start){
+        // none null start find
+        len = ::strlen(start);
+        message_start = ::strstr(message_start,start);
+        if(!message_start){
+          // start not found
+          return "";
+        }
+    }
+    message_start += len;
+    if(end){
+        message_end = ::strstr(message_start,end);
+        if(!message_end){
+            return "";
+        }
+    }
+    // found start end
+    return std::string(message_start,message_end);
+}
 
 int main(int argc,char** argv){
+    std::string whole_str = "WWW-Authenticate: Digest realm=\"testrealm@host.com\",qop=\"auth,auth-int\",nonce=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\",opaque=\"5ccc069c403ebaf9f0171e9517f40e41\"";
+    std::cout << "realm:" << extract_field(whole_str.c_str(), "realm=", ",",0) << std::endl;
+    std::cout << "qop:" << extract_field(whole_str.c_str(), "qop=", ",",0) << std::endl;
+    std::cout << "nonce:" << extract_field(whole_str.c_str(), "nonce=", ",",0) << std::endl;
+    std::cout << "opaque:" << extract_field(whole_str.c_str(), "opaque=", ",",0) << std::endl;
+
+    return 0;
     CNST_OUT();
 
     std::cout << Cnst::STR_CNST << std::endl;
