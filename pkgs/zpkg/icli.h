@@ -71,6 +71,8 @@ private:
     const std::string prompt_;
     std::unordered_map<std::string, command_data> commands_;
     bool running_;
+    size_t max_command_length_;
+    size_t max_help_legnth_;
 };
 
 };

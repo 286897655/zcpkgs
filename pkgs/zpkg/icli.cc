@@ -32,10 +32,11 @@
 
 #include "icli.h"
 #include <iostream>
+#include <iomanip>
 #include "strings.h"
 namespace zpkg{
 
-icli::icli(const std::string& prompt):prompt_(prompt),running_(false){
+icli::icli(const std::string& prompt):prompt_(prompt),running_(false),max_command_length_(0),max_help_legnth_(0){
     // self help and quit command
     add_commmand("help","show help information,help [command] for more information about command",[this](const std::vector<std::string>& args){
         show_help(args);
@@ -47,6 +48,8 @@ icli::icli(const std::string& prompt):prompt_(prompt),running_(false){
 
 void icli::add_commmand(const std::string& command,const std::string& help,command_handler command_call){
     commands_[command] = {.handler = command_call,.help = help};
+    max_command_length_ = std::max(max_command_length_,command.length());
+    max_help_legnth_ = std::max(max_help_legnth_,help.length());
 }
 
 void icli::interactive(){
@@ -126,9 +129,14 @@ void icli::show_help(const std::vector<std::string>& args){
 
 void icli::show_all_help(){
     std::cout << "Availiable commands:" << std::endl;
+    // save flags
+    std::ios_base::fmtflags flags = std::cout.flags();
+    std::cout << std::left;
     for(const auto& command : commands_){
-        std::cout << command.first << "        " << command.second.help << std::endl;
+        std::cout << std::setw(max_command_length_) << command.first << "        " << std::setw(max_help_legnth_) << command.second.help << std::endl;
     }
+    // reback flags
+    std::cout.flags(flags);
 }
 
 void icli::quit(){
