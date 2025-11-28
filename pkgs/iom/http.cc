@@ -35,6 +35,7 @@
 #include <zpkg/strings.h>
 #include <zpkg/base64.h>
 #include <zpkg/hash/hash.h>
+#include <zpkg/randoms.h>
 #include <llhttp/llhttp.h>
 
 namespace iom { 
@@ -338,11 +339,13 @@ void DigestParams::Clear(){
 std::ostream& operator<<(std::ostream& os, const DigestParams& params){
     static constexpr const char* kAuthenticationType[]={"NONE","BASIC","DIGEST"};
     static constexpr const char* kDigestAlgo[]={"MD5","MD5_SESS","SHA256","SHA256_SESS","SHA512_256","SHA512_256_SESS"};
+    static constexpr const char* kQopType[] = {"NONE","AUTH","AUTH-INT"};
     os << "DigestParams:"
         << "  type:"  << kAuthenticationType[params.type]
         << "  algo:"  << kDigestAlgo[params.algo]
         << "  nc:"    << params.nc
-        << "  qop:"   << params.qopstr
+        << "  qop:"   << kQopType[static_cast<int>(params.qop)]
+        << "  qops:"  << params.qopstr
         << "  realm:" << params.realm
         << "  nonce:" << params.nonce
         << "  opaque:" << params.opaque
@@ -377,7 +380,8 @@ RFC2617::DigestParams& HttpAuthenticator::ParseChallenge(const std::string& chal
         return parames_;
     }
     // decode parameters
-    if(!rfc2617_decode_params(challenge.c_str(), &parames_)){
+    std::string digest = challenge.substr(sizeof(RFC2617::kAuthDigest) - 1);
+    if(!rfc2617_decode_params(digest.c_str(), &parames_)){
         parames_.Clear();
     }
     return parames_;
@@ -409,7 +413,7 @@ std::string HttpAuthenticator::digest_auth(http_method method,const std::string&
     // Digest 认证核心逻辑（RFC 2617 第 3.2.2 节）
     // generate conce
     if(parames_.qop != RFC2617::DigestQop::NONE){
-        parames_.cnonce = zpkg::strings::random_hex(16);
+        parames_.cnonce = zpkg::Random::TLSInstance().RandomHexString(16);
     }
     
     // realm and nonce must be set
@@ -451,7 +455,7 @@ std::string HttpAuthenticator::digest_auth(http_method method,const std::string&
         // nonce count should add
         parames_.nc++;
 
-        response = hash_cb(ha1 + ":" + parames_.nonce + ":" + nc + ":" + parames_.cnonce + ":" + parames_.qopstr + ":" + ha2);
+        response = hash_cb(ha1 + ":" + parames_.nonce + ":" + std::string(nc) + ":" + parames_.cnonce + ":" + parames_.qopstr + ":" + ha2);
     }
     // 4 build
     std::ostringstream oss;

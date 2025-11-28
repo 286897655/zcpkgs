@@ -35,54 +35,11 @@
 #include <zpkg/strings.h>
 #include <string.h>
 #include <iomanip>
-#include <random>
 
 namespace zpkg{
 
 namespace strings{
 
-// TODO zhaoj random string 和 random-hex放到randoms中去
-std::string random_string(size_t length,bool has_upper,bool has_lower,bool has_number,bool has_special){
-    // chaset
-    std::string char_set;
-    if(has_upper){
-        char_set += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    }
-    if(has_lower){
-        char_set += "abcdefghijklmnopqrstuvwxyz";
-    }
-    if(has_number){
-        char_set += "0123456789";
-    }
-    if(has_special){
-        char_set += "!@#$%^&*()_-+=[]{}|;:,.<>?";
-    }
-    if(char_set.empty()){
-        return kstrings::kEmpty;
-    }
-    std::default_random_engine rng;
-    std::uniform_int_distribution<size_t> dist(0,char_set.size() - 1);
-
-    std::string result;
-    result.reserve(length);
-    for (size_t i = 0; i < length; ++i) {
-        result += char_set[dist(rng)];
-    }
-    return result;
-}
-
-std::string random_hex(size_t length){
-    static constexpr const char kHexChars[] = "0123456789abcdef";
-
-    std::mt19937 rng;
-    std::uniform_int_distribution<> dis(0, sizeof(kHexChars) - 1);
-    std::string ret;
-    ret.reserve(length);
-    for (size_t i = 0; i < length; ++i) {    
-        ret += kHexChars[dis(rng)];
-    }
-    return ret;
-}
 std::vector<std::string> split(const std::string& origin,const char* delim)
 {
     std::vector<std::string> ret;

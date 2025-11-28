@@ -40,10 +40,39 @@
 namespace zpkg{
 
 class Random{
+public:
+    explicit Random(uint32_t seed);
+    explicit Random();
+    ~Random();
 
+    // // default use uniform_int_distribution
+    // uint32_t Next();
+    // uint64_t Next64();
+    // // uniform_int_distribution
+    // uint32_t UniformNext(uint32_t n);
+    // // normal_distribution
+    // uint32_t NormalNext(uint32_t mean, uint32_t stddev);
+    // bool PercentBool(int percentage);
+
+    /// @brief generate random string
+    /// @param length 
+    /// @param has_upper 
+    /// @param has_lower 
+    /// @param has_number 
+    /// @param has_special 
+    /// @return 
+    std::string RandomString(size_t length,bool has_upper = true,bool has_lower = true,bool has_number = true,bool has_special =false);
+    
+    /// @brief generate random hex string
+    /// @param length 
+    /// @return 
+    std::string RandomHexString(size_t length);
+
+    static Random& TLSInstance();
 private:
     std::default_random_engine rng_;
-    std::uniform_int_distribution<size_t> dist_;
+    // std::uniform_int_distribution<uint32_t> uniform_;
+    // std::normal_distribution<uint32_t> normal_;
 };
 
 class Random32{
