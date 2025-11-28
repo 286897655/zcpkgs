@@ -299,8 +299,19 @@ public:
     RFC2617::DigestParams& GetParams(){
         return parames_;
     }
+    /// @brief Parse "WWW-Authenticate" 's content
+    /// @param challenge 
+    /// @return 
     RFC2617::DigestParams& ParseChallenge(const std::string& challenge);
+
+    /// @brief Authorization: Basic xxxx
+    /// @return 
     std::string AuthorizationBasic();
+
+    /// @brief Authorization: Digest xxxx
+    /// @param method 
+    /// @param uri_path 
+    /// @return 
     std::string AuthorizationDigest(http_method method,const std::string& uri_path);
 private:
     std::string digest_auth(http_method method,const std::string& uri_path);

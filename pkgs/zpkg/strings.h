@@ -175,6 +175,10 @@ inline std::string strip_suffix(const std::string& str, const std::string& suffi
         return str;
 }
 
+inline bool has_newline(const std::string& str){
+    return str.find(kstrings::kLF) != std::string::npos;
+}
+
 std::string extract_field(const char* str,const char* start = NULL,const char* end = NULL,size_t length = 0);
 
 /// @brief a simple from,but not effcient

@@ -27,31 +27,10 @@
 
  /**
  * @author zhaoj 286897655@qq.com
- * @brief 
+ * @brief G711 Codec g711a(alaw) g711u(ulaw)
  */
+#include "g711.h"
 
-// #include "zrandom.h"
+namespace avm { 
 
-// namespace zpkg{
-
-// zrandom::zrandom(){
-
-// }
-
-// void zrandom::uniform(){
-
-// }
-
-// int zrandom::next_int(){
-
-// }
-
-// std::string zrandom::generate_string(){
-
-// }
-
-// std::string zrandom::generate_string(const std::string& string_set){
-
-// }
-
-// };//!namespace zpkg
+};//! namespace avm

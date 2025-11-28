@@ -1,3 +1,5 @@
+#pragma once
+
 /** 
  * @copyright Copyright © 2020-2025 code by zhaoj
  * 
@@ -27,41 +29,53 @@
 
  /**
  * @author zhaoj 286897655@qq.com
- * @brief 
+ * @brief socket tools
  */
 
-#ifndef ZPKG_URL_H_
-#define ZPKG_URL_H_
+ #ifndef ZPKG_SOCKETS_H_
+ #define ZPKG_SOCKETS_H_
 
-#include <zpkg/error.h>
-#include <string>
+#include <zpkg/utility.h>
+#include <zpkg/errors.h>
+#if defined(Z_SYS_WINDOWS)
+    #include <WinSock2.h>
+#elif defined(Z_SYS_LINUX)
+    #include <sys/socket.h>
+#endif
 
-namespace zpkg{
+namespace zpkg { 
 
-struct url_ctx{
-    std::string schema;
-    std::string host;
-    int port;
-    std::string path;
-    std::string base;
-    std::string param;
+enum socket_type_t{
+    SOCKET_INVALID = -1,
+    SOCKET_STREAM = 0,
+    SOCKET_DATAGRAM = 1,
+    SOCKET_RAW = 2,
+    SOCKET_UNKNOWN = 3
 };
 
-/**
- * split url to separate part
- * such as http://127.0.0.1:8080/xxxx/xxx.m3u8
- * rtsp://127.0.0.1:254/xxx/xxx
- * ---> protocol http
- *      hostport 127.0.0.1:8080
- *      path /xxxx/
- *      base xxx.m3u8
- * ---> protocol rtsp
- *      hostport 127.0.0.1:254
- *      path /xxx/
- *      base xxx 
-*/
-zerror_code_t url_parser(const std::string& url,url_ctx* url_ctx);
+enum socket_end_t{
+    SOCKET_END_LOCAL = 0,
+    SOCKET_END_PEER = 1
+};
 
-};//!namespace zpkg
 
-#endif //!ZPKG_URL_H_
+class ip_address;
+class sockets{
+public:
+    static bool ip_valid(const char* ip);
+    static bool ipv4_valid(const char* ip);
+    static bool ipv6_valid(const char* ip);
+
+    //static Status_t 
+};
+
+class ip_address{
+public:
+    explicit ip_address(const std::string& addr_str);
+
+    bool valid() const;
+};
+
+}//!namesapce zpkg
+
+ #endif //!ZPKG_SOCKETS_H_

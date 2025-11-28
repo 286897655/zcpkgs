@@ -36,6 +36,7 @@
 #define ZPKG_HASH_H_
 
 #include <string>
+#include <cstdint>
 
 namespace zpkg{ 
 

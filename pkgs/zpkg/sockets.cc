@@ -27,13 +27,28 @@
 
  /**
  * @author zhaoj 286897655@qq.com
- * @brief 
+ * @brief socket tools
  */
+#include "sockets.h"
 
-#ifndef ZIO_ZIO_ALL_H_
-#define ZIO_ZIO_ALL_H_
+#if defined(Z_SYS_WINDOWS)
+    #include <ws2tcpip.h>
+#elif defined(Z_SYS_LINUX)
+    #include <arpa/inet.h>
+#endif
 
-#include <zio/io_loop.h>
-#include <zio/io_timer.h>
-
-#endif//!ZIO_ZIO_ALL_H_
+namespace zpkg{
+////////////////////////////////sockets////////////////////////////////
+bool sockets::ip_valid(const char* ip){
+    return ipv4_valid(ip) || ipv6_valid(ip);
+}
+bool sockets::ipv4_valid(const char* ip){
+    struct in_addr addr;
+    return 1 == ::inet_pton(AF_INET, ip, &addr);
+}
+bool sockets::ipv6_valid(const char* ip){
+    struct in6_addr addr;
+    return 1 == ::inet_pton(AF_INET6, ip, &addr);
+}
+////////////////////////////////sockets////////////////////////////////
+};//!namespace zpkg
