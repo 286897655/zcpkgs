@@ -72,6 +72,10 @@ size_t fs_read_binsize(const std::string& filename)
     return size;
 }
 
+bool fs_remove(const std::string& filewithpath){
+    return ::remove(filewithpath.c_str()) == 0;
+}
+
 namespace fs{
 
 bool Path::Exist(const std::string& path){

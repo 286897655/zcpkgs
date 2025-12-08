@@ -1,3 +1,5 @@
+#pragma once
+
 /** 
  * @copyright Copyright © 2020-2025 code by zhaoj
  * 
@@ -43,6 +45,8 @@ namespace zpkg{
 std::string fs_read_content(const std::string& filename);
 
 size_t fs_read_binsize(const std::string& filename);
+
+bool fs_remove(const std::string& filewithpath);
 
 namespace fs{
 
