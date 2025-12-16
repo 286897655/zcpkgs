@@ -1,3 +1,5 @@
+#pragma once
+
 /** 
  * @copyright Copyright © 2020-2025 zhaoj
  * 
@@ -27,15 +29,17 @@
 
 /**
  * @author zhaoj 286897655@qq.com
- * @brief 
+ * @brief rtp/rtcp protocol 
  */
-
-#ifndef ZAV_PROTO_RTP_RTCP_H_
-#define ZAV_PROTO_RTP_RTCP_H_
+#ifndef AVM_PROTO_RTP_RTCP_H_
+#define AVM_PROTO_RTP_RTCP_H_ 
 
 #include <string>
+#include <cstdint>
 
-namespace zav{
+namespace avm { 
+
+
 /*
 *  0                   1                   2                   3
 *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -50,23 +54,34 @@ namespace zav{
 * |                             ....                              |
 * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
-class rtp_packet{
+class RtpPacket {
 public:
     enum{
-        k_rtp_header_size = 12
+        RTP_HEADER_SIZE = 12
     };
-    // get ssrc of bytes int a rtp packet buffer
-    static bool read_ssrc(const uint8_t* bytes,size_t sizeBytes,uint32_t* out_ssrc);
-    // override ssrc int a rtp packet buffer bytes
-    static bool override_ssrc(const uint8_t* bytes,size_t sizeBytes,uint32_t ssrc);
-    /// @brief check whether rtp packet buffer is valid 
-    /// header use 12 bytes,payload type is in < 64 or >= 96
+    /// @brief 
+    /// @param bytes 
+    /// @param sizeBytes 
+    /// @param ssrc 
+    /// @return 
+    static bool OverrideSSRC(uint8_t* const bytes,size_t sizeBytes,uint32_t ssrc);
+    /// @brief 
+    /// @param bytes 
+    /// @param sizeBytes 
+    /// @param out_ssrc 
+    /// @return 
+    static bool ReadSSRC(const uint8_t* const bytes,size_t sizeBytes,uint32_t* out_ssrc);
+    /// @brief 
     /// @param bytes 
     /// @param sizeBytes 
     /// @return 
-    static bool valid(const uint8_t* bytes,size_t sizeBytes);
+    static bool Valid(const uint8_t* const bytes,size_t sizeBytes);
+
+    // std::string Dump() const;
 };
 
-};//!namespace zav
 
-#endif//!ZAV_PROTO_RTP_RTCP_H_
+
+}//!namespace avm
+
+#endif//!AVM_PROTO_RTP_RTCP_H_

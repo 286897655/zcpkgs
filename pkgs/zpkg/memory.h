@@ -244,7 +244,6 @@ inline uint64_t z_bswap64_c(uint64_t x){
     } while(0)
 #endif
 
-
 // make_unique support for pre c++14
 #if __cplusplus <= 201402L && __cplusplus >= 201103L // C++14 and beyond
 namespace std

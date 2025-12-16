@@ -29,39 +29,11 @@
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
+#include "io_socket.h"
 
-#include "rtp_rtcp.h"
-#include <zpkg/utility.h>
-
-namespace zav{
-
-// get ssrc of bytes int a rtp packet buffer
-bool rtp_packet::read_ssrc(const uint8_t* bytes,size_t sizeBytes,uint32_t* out_ssrc){
-    if(sizeBytes < k_rtp_header_size){
-            return false;
-    }
-    Z_ASSERT(out_ssrc);Z_ASSERT(bytes);
-
-    *out_ssrc = Z_RBE32(bytes + 8);
-    return true;
-}
-// override ssrc int a rtp packet buffer bytes
-bool rtp_packet::override_ssrc(const uint8_t* bytes,size_t sizeBytes,uint32_t ssrc){
-    if(sizeBytes < k_rtp_header_size){
-        return false;
-    }
-
-    Z_WBE32(bytes + 8,ssrc);
-    return true;
+namespace iom {
+SocketAddr::SocketAddr(const struct sockaddr* addr){
+    
 }
 
-bool rtp_packet::valid(const uint8_t* bytes,size_t sizeBytes){
-    if(sizeBytes < k_rtp_header_size){
-        return false;
-    }
-
-    uint8_t pt = (*(bytes + 1)) & 0x7F;
-    return (pt < 64 || pt >= 96);
-}
-
-}//!namespace zav
+};//!namespace iom

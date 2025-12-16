@@ -1,3 +1,4 @@
+#pragma once
 /** 
  * @copyright Copyright © 2020-2025 code by zhaoj
  * 
@@ -54,8 +55,70 @@ void cross_byte_u8_c(const uint8_t* bytes,size_t size);
 void cross_byte_s16(const int16_t* bytes,size_t size);
 void cross_byte_s16_c(const int16_t* bytes,size_t size);
 
-class bit_buffer{
+class byte_stream{
+public:
+    /// @brief construct with bytes and size,caller ensuare bytes is valid
+    /// @param bytes 
+    /// @param sizeBytes 
+    explicit byte_stream(uint8_t* bytes,size_t sizeBytes);
+    ~byte_stream() =default;
 
+    /// @brief check whether end of stream
+    /// @return 
+    bool eof() const;
+
+    /// @brief return head of stream
+    /// @return 
+    uint8_t* head() const;
+
+    /// @brief return total size of stream
+    /// @return 
+    size_t size() const;
+
+    /// @brief return current pos of stream
+    /// @return 
+    uint8_t* pos() const;
+
+    /// @brief return left bytes in stream, total size minus the current.
+    /// @return 
+    size_t left() const;
+
+    /// @brief return lapped bytes in stream,pos to head
+    /// @return 
+    size_t lapped() const;
+
+    /// @brief peek current bytes to out
+    /// @param out 
+    /// @param sizeOut 
+    /// @return return size peek
+    size_t peek(uint8_t* out,size_t sizeOut);
+
+    /// @brief read bytes to out
+    /// @param out 
+    /// @param sizeOut 
+    /// @return return size read
+    size_t read(uint8_t* out,size_t sizeOut);
+
+    /// @brief write bytes from in
+    /// @param in 
+    /// @param sizeIn 
+    /// @return return write size
+    size_t write(const uint8_t* in,size_t sizeIn);
+    
+    /// @brief check whether left stream size make enough for require size
+    /// @param required_size 
+    /// @return 
+    bool require(size_t requiredSize) const;
+
+    /// @brief skip some step
+    /// @param step step can be any value. positive to forward; negative to backward.
+    /// @return skiped step
+    int skip(int step);
+
+private:
+    uint8_t* pos_;
+    uint8_t* start_;
+    uint8_t* end_;
 };
 
 }//!namespace zpkg

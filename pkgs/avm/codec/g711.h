@@ -81,8 +81,45 @@ specification by other means.
 #ifndef AVM_CODEC_G711_H_
 #define AVM_CODEC_G711_H_ 
 
+#include <cstdint>
+
 namespace avm{ 
 
+/*! \brief Encode a linear sample to A-law
+    \param linear The sample to encode.
+    \return The A-law value.
+*/
+uint8_t	linear2alaw(int16_t linear);
+
+/*! \brief Decode an A-law sample to a linear value.
+    \param alaw The A-law sample to decode.
+    \return The linear value.
+*/
+int16_t	alaw2linear(uint8_t alaw);
+
+/*! \brief Encode a linear sample to u-law
+    \param linear The sample to encode.
+    \return The u-law value.
+*/
+uint8_t	linear2ulaw(int16_t linear);
+
+/*! \brief Decode an u-law sample to a linear value.
+    \param ulaw The u-law sample to decode.
+    \return The linear value.
+*/
+int16_t	ulaw2linear(uint8_t ulaw);
+
+/*! \brief Transcode from u-law to A-law, using the procedure defined in G.711.
+    \param alaw The u-law sample to transcode.
+    \return The best matching A-law value.
+*/
+uint8_t	alaw2ulaw(uint8_t alaw);
+
+/*! \brief Transcode from A-law to u-law, using the procedure defined in G.711.
+    \param alaw The A-law sample to transcode.
+    \return The best matching u-law value.
+*/
+uint8_t	ulaw2alaw(uint8_t ulaw);
 };//! namespace avm
 
 #endif//!AVM_CODEC_G711_H_

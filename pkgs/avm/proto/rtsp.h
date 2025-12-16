@@ -38,6 +38,21 @@
 
 namespace avm{
 
+enum RTSP_TRANSPORT {
+    UNKNOWN = 0,
+    TCP,
+    UDP,
+    //MULTICAST
+    UDP_MULTICAST,
+    //HTTP
+    HTTP, 
+    // WEBSOCKET
+    WEBSOCKET,
+};
+
+RTSP_TRANSPORT rtsp_transport(const std::string& description);
+std::string desc_rtsp_transport(RTSP_TRANSPORT transport);
+
 std::string rtsp_url_add_usr_pwd(const std::string& url,const std::string& usr,const std::string& pwd);
 
 }//!namespace avm

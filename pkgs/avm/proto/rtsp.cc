@@ -30,11 +30,31 @@
  * @brief 
  */
 
- #include "rtsp.h"
- #include <zpkg/strings.h>
-
+#include "rtsp.h"
+#include <zpkg/strings.h>
+#include <string.h>
 namespace avm{
-    
+
+static constexpr const char* kRTSP_TRANSPORT_DESCRIPTION[6] = {"UNKNOWN","TCP","UDP","MULTICAST","HTTP","WEBSOCKET"};
+RTSP_TRANSPORT rtsp_transport(const std::string& description){
+    std::string upper = zpkg::strings::toupper(description);
+    if(upper == kRTSP_TRANSPORT_DESCRIPTION[RTSP_TRANSPORT::TCP]){
+        return RTSP_TRANSPORT::TCP;
+    }else if(upper == kRTSP_TRANSPORT_DESCRIPTION[RTSP_TRANSPORT::UDP]){
+        return RTSP_TRANSPORT::UDP;
+    }else if(upper == kRTSP_TRANSPORT_DESCRIPTION[RTSP_TRANSPORT::UDP_MULTICAST]){
+        return RTSP_TRANSPORT::UDP_MULTICAST;
+    }else if(upper == kRTSP_TRANSPORT_DESCRIPTION[RTSP_TRANSPORT::HTTP]){
+        return RTSP_TRANSPORT::HTTP;
+    }else if(upper == kRTSP_TRANSPORT_DESCRIPTION[RTSP_TRANSPORT::WEBSOCKET]){
+        return RTSP_TRANSPORT::WEBSOCKET;
+    }
+    return RTSP_TRANSPORT::UNKNOWN;
+}
+std::string desc_rtsp_transport(RTSP_TRANSPORT transport){
+    return kRTSP_TRANSPORT_DESCRIPTION[static_cast<int>(transport)];
+}
+
 //rtsp://[用户名:密码@]主机[:端口]/路径
 std::string rtsp_url_add_usr_pwd(const std::string& url,const std::string& usr,const std::string& pwd){
     size_t found = url.find("rtsp://");
@@ -42,7 +62,7 @@ std::string rtsp_url_add_usr_pwd(const std::string& url,const std::string& usr,c
         // not start or not found
         return url;
     }
-    std::string no_protocol = url.substr(0,sizeof("rtsp://") - 1);
+    std::string no_protocol = url.substr(sizeof("rtsp://") - 1);
     // check whether rtsp url has usr and pwd
     size_t found_comma = no_protocol.find(':');
     size_t found_at = no_protocol.find('@');
@@ -61,4 +81,4 @@ std::string rtsp_url_add_usr_pwd(const std::string& url,const std::string& usr,c
     return "rtsp://" + usr + ":" + pwd + "@" + no_protocol;
 }
 
- };//!namespace avm
+};//!namespace avm

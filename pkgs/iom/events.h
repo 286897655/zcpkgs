@@ -1,10 +1,12 @@
+#pragma once
+
 /** 
- * @copyright Copyright © 2020-2025 code by zhaoj
+ * @copyright Copyright © 2020-2025 zhaoj
  * 
  * LICENSE
- * 
- * MIT License
  *
+ * MIT License
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -22,34 +24,25 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
+ * 
  */
 
- /**
+/**
  * @author zhaoj 286897655@qq.com
  * @brief 
  */
+#ifndef IOM_EVENTS_H_
+#define IOM_EVENTS_H_ 
 
-#ifndef ZAV_PROTO_RTSP_H_
-#define ZAV_PROTO_RTSP_H_
+namespace iom { 
 
-#include <string>
-
-namespace zav{
-    
-enum RTSP_TRANSPORT{
-    RTSP_TRANSPORT_TCP,// TCP
-    RTSP_TRANSPORT_UDP,// UDP
-    RTSP_TRANSPORT_UDP_MULTICAST,//MULTICAST
-    RTSP_TRANSPORT_HTTP, //HTTP
-    RTSP_TRANSPORT_WEBSOCKET,// WEBSOCKET
-    RTSP_TRANSPORT_UNKNOWN // UNKNOWN
-};
-
-RTSP_TRANSPORT rtsp_transport(const std::string& description);
-std::string desc_rtsp_transport(RTSP_TRANSPORT transport);
-
-}//!namespace zav
+/**
+ * 包含基于事件循环的三大件
+ * 多路复用,定时器,事件循环线程池
+*/
 
 
-#endif
+
+};//!namespace iom
+
+#endif//!IOM_EVENTS_H_

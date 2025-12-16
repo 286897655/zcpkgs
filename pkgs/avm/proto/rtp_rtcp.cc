@@ -1,10 +1,10 @@
 /** 
- * @copyright Copyright © 2020-2025 code by zhaoj
+ * @copyright Copyright © 2020-2025 zhaoj
  * 
  * LICENSE
- * 
- * MIT License
  *
+ * MIT License
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -22,39 +22,47 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
+ * 
  */
 
- /**
+/**
  * @author zhaoj 286897655@qq.com
- * @brief 
+ * @brief rtp/rtcp protocol 
  */
+#include "rtp_rtcp.h"
+#include <zpkg/memory.h>
+#include <zcpkgs_common.h>
 
-#include "zav/proto/rtsp.h"
-
-namespace zav{
-static constexpr const char* kRTSP_TRANSPORT_DESCRIPTION[6] = {"TCP","UDP","MULTICAST","HTTP","WEBSOCKET","UNKNOWN"};
-
-RTSP_TRANSPORT rtsp_transport(const std::string& description){
-    if(description == kRTSP_TRANSPORT_DESCRIPTION[RTSP_TRANSPORT_TCP]){
-        return RTSP_TRANSPORT_TCP;
-    }else if(description == kRTSP_TRANSPORT_DESCRIPTION[RTSP_TRANSPORT_UDP]){
-        return RTSP_TRANSPORT_UDP;
-    }else if(description == kRTSP_TRANSPORT_DESCRIPTION[RTSP_TRANSPORT_UDP_MULTICAST]){
-        return RTSP_TRANSPORT_UDP_MULTICAST;
-    }else if(description == kRTSP_TRANSPORT_DESCRIPTION[RTSP_TRANSPORT_HTTP]){
-        return RTSP_TRANSPORT_HTTP;
-    }else if(description == kRTSP_TRANSPORT_DESCRIPTION[RTSP_TRANSPORT_WEBSOCKET]){
-        return RTSP_TRANSPORT_WEBSOCKET;
+namespace avm { 
+///////////////////////////RtpPacket///////////////////////////////////
+bool RtpPacket::OverrideSSRC(uint8_t* const bytes,size_t sizeBytes,uint32_t ssrc){
+    if(sizeBytes < RTP_HEADER_SIZE){
+        return false;
     }
 
-    return RTSP_TRANSPORT_UNKNOWN;
+    Z_WBE32(bytes + 8,ssrc);
+    return true;
 }
 
-std::string desc_rtsp_transport(RTSP_TRANSPORT transport){
-    return kRTSP_TRANSPORT_DESCRIPTION[transport];
+bool RtpPacket::ReadSSRC(const uint8_t* const bytes,size_t sizeBytes,uint32_t* out_ssrc){
+    if(sizeBytes < RTP_HEADER_SIZE){
+            return false;
+    }
+    
+    Z_ASSERT(out_ssrc);Z_ASSERT(bytes);
+
+    *out_ssrc = Z_RBE32(bytes + 8);
+    return true;
 }
 
-
-
-};//!namespace zav
+bool RtpPacket::Valid(const uint8_t* const bytes,size_t sizeBytes){
+    if(sizeBytes < RTP_HEADER_SIZE){
+        return false;
+    }
+    Z_ASSERT(bytes);
+    // check payload type
+    uint8_t pt = (*(bytes + 1)) & 0x7F;
+    return (pt < 64 || pt >= 96);
+}
+///////////////////////////RtpPacket///////////////////////////////////
+};//! namespace avm

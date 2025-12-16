@@ -58,8 +58,6 @@ enum socket_end_t{
     SOCKET_END_PEER = 1
 };
 
-
-class ip_address;
 class sockets{
 public:
     static bool ip_valid(const char* ip);
@@ -67,13 +65,6 @@ public:
     static bool ipv6_valid(const char* ip);
 
     //static Status_t 
-};
-
-class ip_address{
-public:
-    explicit ip_address(const std::string& addr_str);
-
-    bool valid() const;
 };
 
 }//!namesapce zpkg

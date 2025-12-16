@@ -31,6 +31,7 @@
  */
 
 #include "zpkg/buffers.h"
+#include <cstring>
 #ifdef __x86_64__
 #include <immintrin.h>
 #elif __ARM_NEON
@@ -131,5 +132,99 @@ void cross_byte_s16(const int16_t* bytes,size_t size)
     cross_byte_u8_c((const uint8_t*)bytes,size * sizeof(int16_t));
     #endif
 }
+//////////////////////////////////byte_stream/////////////////////////////////////////////////////
+byte_stream::byte_stream(uint8_t* bytes,size_t sizeBytes):start_(bytes),end_(bytes + sizeBytes),pos_(bytes){
 
+}
+bool byte_stream::eof() const{
+    return pos_ >= end_;
+}
+
+uint8_t* byte_stream::head() const{
+    return start_;
+}
+
+size_t byte_stream::size() const{
+    return end_ - start_;
+}
+
+uint8_t* byte_stream::pos() const{
+    return pos_;
+}
+
+size_t byte_stream::left() const{
+    return end_ - pos_;
+}
+
+size_t byte_stream::lapped() const{
+    return pos_ - start_;
+}
+
+size_t byte_stream::peek(uint8_t* out,size_t sizeOut){
+    if(eof()){
+        return 0;
+    }
+
+    size_t leftbuffer = left();
+    if(leftbuffer < sizeOut){
+        // has not enough bytes
+        sizeOut = leftbuffer;
+    }
+    std::memcpy(out,pos_,sizeOut);
+    return sizeOut;
+}
+
+size_t byte_stream::read(uint8_t* out,size_t sizeOut){
+    if(eof()){
+        return 0;
+    }
+    size_t leftbuffer = left();
+    if(leftbuffer < sizeOut){
+        // has not enough bytes
+        sizeOut = leftbuffer;
+    }
+    std::memcpy(out,pos_,sizeOut);
+    pos_ += sizeOut;
+    return sizeOut;
+}
+
+size_t byte_stream::write(const uint8_t* in,size_t sizeIn){
+    if(eof()){
+        return 0;
+    }
+    size_t leftbuffer = left();
+    if(leftbuffer < sizeIn){
+        // has not enough bytes
+        sizeIn = leftbuffer;
+    }
+    std::memcpy(pos_,in,sizeIn);
+    pos_ += sizeIn;
+    return sizeIn;
+}
+
+bool byte_stream::require(size_t requiredSize) const{
+    return requiredSize <= left();
+};
+
+int byte_stream::skip(int step){
+    if(step > 0){
+        size_t leftbuffer = left();
+        if(step > leftbuffer){
+            step = leftbuffer;
+        }
+        // <= left ok
+    }
+    if(step < 0){
+        size_t lappedbuffer = lapped();
+        if(step < -1 * lappedbuffer){
+            step = -1 * lappedbuffer;
+        }
+        // >= lapped ok
+    }
+    pos_ += step;
+
+    return step;
+}
+
+//////////////////////////////////byte_stream/////////////////////////////////////////////////////
 };//!namespace zpkg
