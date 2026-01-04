@@ -110,10 +110,15 @@ std::string times::fmt_now_s(const char* fmt){
     return buffer;
 }
 
-std::time_t ctime::utc_timet(){
+std::time_t ctime::utc_timet_now(){
     return ::time(NULL);
 }
 
+std::tm ctime::utc_tm_now(){
+    std::time_t now = utc_timet_now();
+
+    return timet2tm(now);
+}
 std::tm ctime::timet2tm(std::time_t time_tt){
     std::tm tm;
 #ifdef _WIN32

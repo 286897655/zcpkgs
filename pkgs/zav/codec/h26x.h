@@ -41,6 +41,9 @@
 
 #define FORBIDDEN_ZERO_BIT(v) (uint8_t(v) >> 7)
 
+constexpr uint8_t uint8_h265_type_40 = H265_NALU_TYPE(0x40);
+
+
 namespace zav{
 
 /**

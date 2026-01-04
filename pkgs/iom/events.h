@@ -34,14 +34,34 @@
 #ifndef IOM_EVENTS_H_
 #define IOM_EVENTS_H_ 
 
+#include <functional>
+
 namespace iom { 
 
 /**
  * 包含基于事件循环的三大件
  * 多路复用,定时器,事件循环线程池
 */
+class event_loop_t{
+
+};
+
+class event_timer_t{
+
+};
+
+class event_poller_t{
+
+};
 
 
+// class events{
+// public:
+//     static event_loop_t* default_loop();
+//     static event_loop_t* this_thread_loop();
+//     static event_loop_t* create_this_thread_loop();
+//     static size_t create_loop_pool(size_t count = 0);
+// };
 
 };//!namespace iom
 

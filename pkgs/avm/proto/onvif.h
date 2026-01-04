@@ -37,12 +37,14 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 #include <ctime>
 
 namespace avm{
 
+static constexpr const char kSOAP_HTTP_CONTENT_TYPE[] = "application/soap+xml; charset=utf-8";
+
 struct soap{
-    static const char* kSOAP_HTTP_CONTENT_TYPE;
     static std::string format_soap_message(const std::string& message);
 };
 
@@ -172,6 +174,13 @@ struct onvif_video_source_configuration{
     /**
      * ignore other filed
      */
+};
+
+struct onvif_profile{ 
+    std::string vsc_token;
+    std::string token;
+    std::string name;
+    std::string stream_url;
 };
 
 // Authentication over HTTP and HTTPS
@@ -356,11 +365,35 @@ private:
     std::unique_ptr<media_service_proxy> media_service_proxy_;
 };
 
+struct onvif_channel_info{
+    std::string name;
+    std::string osd;
+    std::string token;
+
+    std::vector<std::unique_ptr<onvif_profile>> profiles;
+};
+
 /**
  * onvif service use to define a onvif server
 */
 class onvif_service{
+public:
+    static const std::string device_service_xaddr();
+    static const std::string media_service_xaddr();
 
+public:
+    explicit onvif_service(const std::string& usr,const std::string& pwd);
+    ~onvif_service();
+
+    void set_device_infomation(const onvif_device_infomation& info);
+    void set_media_infomation(const std::vector<std::shared_ptr<onvif_channel_info>>& channel_info);
+
+    std::string device_service_serve(const std::string& request) const;
+    std::string media_service_serve(const std::string& request) const;
+private:
+    class tiny_serve;
+    std::unique_ptr<tiny_serve> tiny_;
+    std::unique_ptr<onvif_device_params> device_params_;
 };
 
 };//!namespace avm

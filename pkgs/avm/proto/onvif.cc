@@ -168,7 +168,6 @@ namespace onvif{
     };
 }
 
-const char* soap::kSOAP_HTTP_CONTENT_TYPE = "application/soap+xml; charset=utf-8";
 std::string soap::format_soap_message(const std::string& message){
     tinyxml2::XMLDocument doc;
     doc.Parse(message.c_str());
@@ -269,7 +268,7 @@ public:
         tm_device.tm_min = std::atoi(utc_time_node.node().child_value("tt:Minute"));
         tm_device.tm_sec = std::atoi(utc_time_node.node().child_value("tt:Second"));
         std::time_t utc_device = zpkg::ctime::tm2timet(&tm_device);
-        std::time_t utc_local = zpkg::ctime::utc_timet();
+        std::time_t utc_local = zpkg::ctime::utc_timet_now();
         
         proxy_->device_service_proxy_->device_system_->utc_diff = utc_device - utc_local;
 
@@ -462,7 +461,7 @@ public:
         // may be multi video source configuration
         pugi::xpath_node_set node_sets = doc.select_nodes("//trt:Configurations");
         onvif_video_source_configuration vsc;
-        for(pugi::xpath_node node : node_sets){
+        for(const pugi::xpath_node& node : node_sets){
             vsc.token = node.node().attribute("token").as_string();
             vsc.view_mode = node.node().attribute("ViewMode").as_string();
             vsc.name = node.node().child("tt:Name").text().as_string();
@@ -841,6 +840,346 @@ onvif_soap onvif_proxy::media_service_proxy::parse_GetStreamUri(const std::strin
     return proxy_->tiny_->GetStreamUriResponse(profiletoken,content);
 }
 
+
+class onvif_service::tiny_serve{
+public:
+    tiny_serve(){
+
+    }
+
+    void set_device_infomation(const onvif_device_infomation& info){
+        dev_info_ = std::make_unique<onvif_device_infomation>();
+        dev_info_->Manufacturer = info.Manufacturer;
+        dev_info_->FirmwareVersion = info.FirmwareVersion;
+        dev_info_->HardwareId = info.HardwareId;
+        dev_info_->Model = info.Model;
+        dev_info_->SerialNumber = info.SerialNumber;
+    }
+
+    void set_media_infomation(const std::vector<std::shared_ptr<onvif_channel_info>>& channel_info){
+        if(channel_info.size() == 0)
+            return;
+        
+        channel_map.clear();
+
+        for(const auto& channel : channel_info){
+            channel_map[channel->token] = channel;
+        }
+    }
+
+    std::string serve_device_service(const std::string& request){
+        // <s:Body>
+        //     <tds:GetSystemDateAndTime />
+        //   </s:Body>
+
+        // <soap:Body>
+        //     <tds:GetDeviceInformation />
+        // </soap:Body>
+        if(request.rfind("tds:GetSystemDateAndTime") != std::string::npos){
+            // <tds:GetSystemDateAndTime />
+            return serve_GetSystemDateAndTime();
+        }
+
+        if(request.rfind("tds:GetDeviceInformation") != std::string::npos){
+            //     <tds:GetDeviceInformation />
+            return serve_GetDeviceInformation();
+        }
+
+        // 400-Bad Request
+        return serve_400();
+    }
+
+    std::string serve_400(){
+        tinyxml2::XMLDocument doc;
+        // insert xml declaration
+        doc.InsertEndChild(doc.NewDeclaration());
+        // envelope node
+        tinyxml2::XMLElement* envelope_node = doc.NewElement(onvif::kSOAP_ENVELOPE);
+        doc.InsertEndChild(envelope_node);
+
+        // TODO zhaoj set envelope attribute ter error attribute
+        // envelope_node->set attribute
+        // <s:Header> empty header
+        envelope_node->InsertNewChildElement(onvif::kSOAP_HEADER);
+        // <s:Body>-><s:Fault>
+        auto fault_node = envelope_node->InsertNewChildElement(onvif::kSOAP_BODY)->InsertNewChildElement("s:Fault");
+        auto fault_code = fault_node->InsertNewChildElement("s:Code");
+        fault_code->InsertNewChildElement("s:Value")->SetText("env:Sender");
+        fault_code->InsertNewChildElement("s:Subcode")->InsertNewChildElement("s:Value")->SetText("ter:InvalidArgs");
+        
+        fault_node->InsertNewChildElement("s:Reason")->InsertNewChildElement("s:Text")->SetText("Invalid Args");
+
+        tinyxml2::XMLPrinter xml_printer;
+        doc.Print(&xml_printer);
+
+        return xml_printer.CStr();
+    }
+    std::string serve_GetSystemDateAndTime(){
+        tinyxml2::XMLDocument doc;
+        // insert xml declaration
+        doc.InsertEndChild(doc.NewDeclaration());
+        // envelope node
+        tinyxml2::XMLElement* envelope_node = doc.NewElement(onvif::kSOAP_ENVELOPE);
+        doc.InsertEndChild(envelope_node);
+
+        // set envelope attribute
+        onvif::tds_soap_envelope_attr(envelope_node);
+
+        // <s:Header> empty header
+        envelope_node->InsertNewChildElement(onvif::kSOAP_HEADER);
+        // <s:Body>->tds:GetSystemDateAndTimeResponse->tds:SystemDateAndTime->tt:UTCDateTime
+        // TODO-zhaoj we only use tt:UTCDateTime now
+        auto utcdatetime_node = envelope_node->InsertNewChildElement(onvif::kSOAP_BODY)
+                                        ->InsertNewChildElement("tds:GetSystemDateAndTimeResponse")
+                                        ->InsertNewChildElement("tds:SystemDateAndTime")
+                                        ->InsertNewChildElement("tt:UTCDateTime");
+        
+        auto time_node = utcdatetime_node->InsertNewChildElement("tt:Time");
+        auto date_node = utcdatetime_node->InsertNewChildElement("tt:Date");
+
+        std::tm tm_now = zpkg::ctime::utc_tm_now();
+        date_node->InsertNewChildElement("tt:Year")->SetText(tm_now.tm_year + 1900);
+        date_node->InsertNewChildElement("tt:Month")->SetText(tm_now.tm_mon + 1);
+        date_node->InsertNewChildElement("tt:Day")->SetText(tm_now.tm_mday);
+        
+        time_node->InsertNewChildElement("tt:Hour")->SetText(tm_now.tm_hour);
+        time_node->InsertNewChildElement("tt:Minute")->SetText(tm_now.tm_min);
+        time_node->InsertNewChildElement("tt:Second")->SetText(tm_now.tm_sec);
+
+        tinyxml2::XMLPrinter xml_printer;
+        doc.Print(&xml_printer);
+
+        return xml_printer.CStr();
+    }
+
+    std::string serve_GetDeviceInformation(){
+        tinyxml2::XMLDocument doc;
+        // insert xml declaration
+        doc.InsertEndChild(doc.NewDeclaration());
+        // envelope node
+        tinyxml2::XMLElement* envelope_node = doc.NewElement(onvif::kSOAP_ENVELOPE);
+        doc.InsertEndChild(envelope_node);
+
+        // set envelope attribute
+        onvif::tds_soap_envelope_attr(envelope_node);
+
+        // <s:Header> empty header
+        envelope_node->InsertNewChildElement(onvif::kSOAP_HEADER);
+        // <s:Body>->tds:GetDeviceInformationResponse
+        auto tds_node = envelope_node->InsertNewChildElement(onvif::kSOAP_BODY)
+                                        ->InsertNewChildElement("tds:GetDeviceInformationResponse");
+        
+        tds_node->InsertNewChildElement("tds:Manufacturer")->SetText(dev_info_->Manufacturer.c_str());
+        tds_node->InsertNewChildElement("tds:Model")->SetText(dev_info_->Model.c_str());
+        tds_node->InsertNewChildElement("tds:FirmwareVersion")->SetText(dev_info_->FirmwareVersion.c_str());
+        tds_node->InsertNewChildElement("tds:SerialNumber")->SetText(dev_info_->SerialNumber.c_str());
+        tds_node->InsertNewChildElement("tds:HardwareId")->SetText(dev_info_->HardwareId.c_str());
+
+        tinyxml2::XMLPrinter xml_printer;
+        doc.Print(&xml_printer);
+
+        return xml_printer.CStr();
+    }
+
+    std::string serve_media_service(const std::string& request){
+        if(request.rfind("trt:GetVideoSourceConfigurations") != std::string::npos){
+            return serve_GetVideoSourceConfigurations();
+        }
+
+        
+        if(request.rfind("trt:GetOSDs") != std::string::npos){
+            // <soap:Body>
+            //     <trt:GetOSDs>
+            //         <trt:ConfigurationToken>token</trt:ConfigurationToken>
+            //     </trt:GetOSDs>
+            // </soap:Body>
+            pugi::xml_document doc;
+            doc.load_string(request.c_str());
+            pugi::xpath_query query("//trt:GetOSDs/trt:ConfigurationToken");
+            auto querynode = query.evaluate_node(doc);
+            if(!querynode){
+                return serve_400();
+            }
+            return serve_GetOSDs(querynode.node().child_value());
+        }
+
+        if(request.rfind("trt:GetProfiles") != std::string::npos){
+            return serve_GetProfiles();
+        }
+
+        if(request.rfind("GetStreamUri") != std::string::npos){
+            pugi::xml_document doc;
+            doc.load_string(request.c_str());
+            pugi::xpath_query query("//GetStreamUri/ProfileToken");
+            auto querynode = query.evaluate_node(doc);
+            if(!querynode){
+                return serve_400();
+            }
+            return serve_GetStreamUri(querynode.node().child_value());
+        }
+
+        return serve_400();
+    }
+
+    std::string serve_GetVideoSourceConfigurations(){
+        tinyxml2::XMLDocument doc;
+        // insert xml declaration
+        doc.InsertEndChild(doc.NewDeclaration());
+        // envelope node
+        tinyxml2::XMLElement* envelope_node = doc.NewElement(onvif::kSOAP_ENVELOPE);
+        doc.InsertEndChild(envelope_node);
+
+        // set envelope attribute
+        onvif::trt_sop_envelope_attr(envelope_node);
+        // <s:Header> empty header
+        envelope_node->InsertNewChildElement(onvif::kSOAP_HEADER);
+        // <s:Body>->trt:GetVideoSourceConfigurationsResponse
+        auto trt_response_node = envelope_node->InsertNewChildElement(onvif::kSOAP_BODY)
+                                        ->InsertNewChildElement("trt:GetVideoSourceConfigurationsResponse");
+        for(const auto& channel : channel_map){
+            auto conf_node = trt_response_node->InsertNewChildElement("trt:Configurations");
+            conf_node->SetAttribute("token",channel.first.c_str());
+            // TODO zhaoj fix value original
+            conf_node->SetAttribute("ViewMode","Original");
+
+            conf_node->InsertNewChildElement("tt:Name")->SetText(channel.second->name.c_str());
+            // TODO zhaoj fix value ""
+            conf_node->InsertNewChildElement("tt:SourceToken")->SetText("");
+        }
+
+        tinyxml2::XMLPrinter xml_printer;
+        doc.Print(&xml_printer);
+
+        return xml_printer.CStr();
+    }
+
+    std::string serve_GetOSDs(const std::string& vsc_token){
+        tinyxml2::XMLDocument doc;
+        // insert xml declaration
+        doc.InsertEndChild(doc.NewDeclaration());
+        // envelope node
+        tinyxml2::XMLElement* envelope_node = doc.NewElement(onvif::kSOAP_ENVELOPE);
+        doc.InsertEndChild(envelope_node);
+
+        // set envelope attribute
+        onvif::trt_sop_envelope_attr(envelope_node);
+        // <s:Header> empty header
+        envelope_node->InsertNewChildElement(onvif::kSOAP_HEADER);
+        // <s:Body>->trt:GetOSDsResponse
+        auto trt_response_node = envelope_node->InsertNewChildElement(onvif::kSOAP_BODY)
+                                        ->InsertNewChildElement("trt:GetOSDsResponse");
+
+        for(const auto& channel : channel_map){
+            auto trt_osds_node = trt_response_node->InsertNewChildElement("trt:OSDs");
+            trt_osds_node->SetAttribute("token",channel.first.c_str());
+
+            trt_osds_node->InsertNewChildElement("tt:VideoSourceConfigurationToken")->SetText(vsc_token.c_str());
+            trt_osds_node->InsertNewChildElement("tt:TextString")->InsertNewChildElement("tt:PlainText")->SetText(channel.second->osd.c_str());
+        }
+
+        tinyxml2::XMLPrinter xml_printer;
+        doc.Print(&xml_printer);
+
+        return xml_printer.CStr();
+    }
+
+    std::string serve_GetProfiles(){
+        tinyxml2::XMLDocument doc;
+        // insert xml declaration
+        doc.InsertEndChild(doc.NewDeclaration());
+        // envelope node
+        tinyxml2::XMLElement* envelope_node = doc.NewElement(onvif::kSOAP_ENVELOPE);
+        doc.InsertEndChild(envelope_node);
+
+        // set envelope attribute
+        onvif::trt_sop_envelope_attr(envelope_node);
+        // <s:Header> empty header
+        envelope_node->InsertNewChildElement(onvif::kSOAP_HEADER);
+        // <s:Body>->trt:GetProfilesResponse
+        auto trt_response_node = envelope_node->InsertNewChildElement(onvif::kSOAP_BODY)
+                                        ->InsertNewChildElement("trt:GetProfilesResponse");
+        for(const auto& channel : channel_map){
+            for(const auto& profile : channel.second->profiles){
+                auto trt_profile_node = trt_response_node->InsertNewChildElement("trt:Profiles");
+                trt_profile_node->SetAttribute("token",profile->token.c_str());
+                trt_profile_node->InsertNewChildElement("tt:Name")->SetText(profile->name.c_str());
+                trt_profile_node->InsertNewChildElement("tt:VideoSourceConfiguration")->SetAttribute("token",channel.first.c_str());
+            }
+        }
+
+        tinyxml2::XMLPrinter xml_printer;
+        doc.Print(&xml_printer);
+
+        return xml_printer.CStr();
+    }
+
+    std::string serve_GetStreamUri(const std::string& profile_token){
+        tinyxml2::XMLDocument doc;
+        // insert xml declaration
+        doc.InsertEndChild(doc.NewDeclaration());
+        // envelope node
+        tinyxml2::XMLElement* envelope_node = doc.NewElement(onvif::kSOAP_ENVELOPE);
+        doc.InsertEndChild(envelope_node);
+
+        // set envelope attribute
+        onvif::trt_sop_envelope_attr(envelope_node);
+        // <s:Header> empty header
+        envelope_node->InsertNewChildElement(onvif::kSOAP_HEADER);
+        // <s:Body>->trt:GetStreamUriResponse
+        auto trt_response_node = envelope_node->InsertNewChildElement(onvif::kSOAP_BODY)
+                                        ->InsertNewChildElement("trt:GetStreamUriResponse");
+        for(const auto& channel : channel_map){
+            for(const auto& profile : channel.second->profiles){
+                if(profile->token == profile_token){
+                    trt_response_node->InsertNewChildElement("trt:MediaUri")->InsertNewChildElement("tt:Uri")->SetText(profile->stream_url.c_str());
+                }
+            }
+        }
+
+        tinyxml2::XMLPrinter xml_printer;
+        doc.Print(&xml_printer);
+
+        return xml_printer.CStr();
+    }
+
+private:
+    std::unique_ptr<onvif_device_infomation> dev_info_;
+    std::unordered_map<std::string,std::shared_ptr<onvif_channel_info>> channel_map;
+};
+const std::string onvif_service::device_service_xaddr(){
+    return onvif::kDEVICE_SERVICE_PATH;
+}
+
+const std::string onvif_service::media_service_xaddr(){
+    return onvif::kMEDIA_SERVICE_PATH;
+}
+
+onvif_service::onvif_service(const std::string& usr,const std::string& pwd){
+    device_params_ = std::make_unique<onvif_device_params>();
+    device_params_->usr = usr;
+    device_params_->pwd = pwd;
+    tiny_ = std::make_unique<tiny_serve>();
+}
+
+onvif_service::~onvif_service(){
+
+}
+
+void onvif_service::set_device_infomation(const onvif_device_infomation& info){
+    tiny_->set_device_infomation(info);
+}
+
+void onvif_service::set_media_infomation(const std::vector<std::shared_ptr<onvif_channel_info>>& channel_info){
+    tiny_->set_media_infomation(channel_info);
+}
+
+std::string onvif_service::device_service_serve(const std::string& request) const{
+    return tiny_->serve_device_service(request);
+}
+
+std::string onvif_service::media_service_serve(const std::string& request) const{
+    return tiny_->serve_media_service(request);
+}
 
 
 };//!namespace avm

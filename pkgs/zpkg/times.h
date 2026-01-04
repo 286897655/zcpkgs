@@ -136,7 +136,8 @@ private:
 /// @brief helper function for ctime
 class ctime{
 public:
-    static std::time_t utc_timet();
+    static std::time_t utc_timet_now();
+    static std::tm utc_tm_now();
     static std::tm timet2tm(std::time_t time_tt);
     static std::time_t tm2timet(std::tm* tm_tt);
     static std::string fmt_timet(std::time_t time_tt,const char* fmt = "%Y-%m-%d %H:%M:%S");
